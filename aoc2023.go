@@ -44,8 +44,8 @@ func main() {
 		stopf("Cannot convert string \"%s\" to integer (part)", part_string)
 	}
 
-	if day < 1 || day > 30 {
-		stopf("Expected day in rage [0, 30]. Got: %d", day)
+	if day < 1 || day > 25 {
+		stopf("Expected day in rage [0, 25]. Got: %d", day)
 	}
 
 	if part < 1 || part > 2 {
@@ -90,18 +90,34 @@ func main() {
 
 	// Split into lines
 	lines := strings.Split(data, "\n")
-	// lines = array_filter(lines, func(s string) bool { return len(s) > 0 })
 
+	// Remove empty lines
+	// lines = filter(lines, func(s string) bool { return len(s) > 0 })
+
+	// Remove comments
+	// lines = filter(lines, func(s string) bool { return s[:2] != "//" })
+
+	// for _, line := range lines {
+	// 	println(line)
+	// }
+
+	var value int
 	switch day {
 	case 1:
 		if part == 1 {
-			day01.Main_1(lines)
+			value, err = day01.Main_1(lines)
 		} else {
-			day01.Main_2(lines)
+			value, err = day01.Main_2(lines)
 		}
 	default:
 		stopf("Day %d is not implemented yet", day)
 	}
+
+	if err != nil {
+		stopf("Error when running main. Error: %s", err)
+	}
+
+	fmt.Printf("Return value: %d\n", value)
 }
 
 // https://stackoverflow.com/a/53069799/2531987
@@ -112,16 +128,4 @@ func is_ascii(s string) bool {
 		}
 	}
 	return true
-}
-
-// https://stackoverflow.com/a/37563128/2531987
-// Filter an array using a test. Elements passing the test are kept while those
-// failing it are rejected.
-func filter[T any](A []T, test func(T) bool) (ret []T) {
-	for _, a := range A {
-		if test(a) {
-			ret = append(ret, a)
-		}
-	}
-	return
 }
