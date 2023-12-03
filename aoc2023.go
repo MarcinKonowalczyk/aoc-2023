@@ -3,6 +3,7 @@ package main
 import (
 	"aoc2023/day01"
 	"aoc2023/day02"
+	"aoc2023/day03"
 	"errors"
 	"flag"
 	"fmt"
@@ -115,6 +116,12 @@ func main() {
 			value, err = day02.Main_1(lines)
 		} else {
 			value, err = day02.Main_2(lines)
+		}
+	case 3:
+		if part == 1 {
+			value, err = day03.Main_1(lines)
+		} else {
+			value, err = day03.Main_2(lines)
 		}
 	default:
 		stopf("Day %d is not implemented yet", day)

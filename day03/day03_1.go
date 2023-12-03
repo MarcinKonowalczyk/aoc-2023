@@ -1,10 +1,8 @@
-package day00
+package day03
 
 import "fmt"
 
 func Main_1(lines []string) (n int, err error) {
-	fmt.Println("Hello from main_1")
-	fmt.Printf("Got %d lines\n", len(lines))
 	for _, line := range lines {
 		fmt.Println(line)
 	}
