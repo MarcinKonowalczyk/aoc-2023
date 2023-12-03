@@ -2,7 +2,8 @@ package day00
 
 import "fmt"
 
-func Main_1(lines []string) {
+func Main_1(lines []string) (n int, err error) {
 	fmt.Println("Hello from main_1")
 	fmt.Printf("Got %d lines\n", len(lines))
+	return 0, nil
 }

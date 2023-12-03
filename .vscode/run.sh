@@ -76,8 +76,8 @@ if [ $EXTENSION = "go" ] && [[ $FILENAME == day* ]]; then
     # echo "Day: $DAY"
     # echo "Part: $PART"
 
-    TEST_FILE_PATH="$ROOT_FOLDER/data/test/day$DAY"
-    FULL_FILE_PATH="$ROOT_FOLDER/data/full/day$DAY"
+    TEST_FILE_PATH="$ROOT_FOLDER/data/test/day$DAY.txt"
+    FULL_FILE_PATH="$ROOT_FOLDER/data/full/day$DAY.txt"
 
     # echo "Test file path: $TEST_FILE_PATH"
     # echo "Full file path: $FULL_FILE_PATH"
