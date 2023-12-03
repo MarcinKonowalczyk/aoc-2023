@@ -13,3 +13,16 @@ or
 go build .
 aoc2023 1 1 ./data/test/day01
 ```
+
+
+## test
+
+```
+go test aoc2023/utils -v
+```
+
+or
+
+```
+~/go/bin/gotest aoc2023/utils -v 
+```
