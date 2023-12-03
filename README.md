@@ -1,6 +1,6 @@
 # aoc-2023
 
-Advent of Code 2023 in Go.
+[Advent of Code](https://adventofcode.com) 2023 in Go.
 
 
 ```
