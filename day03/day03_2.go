@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func Main_2(lines []string) (n int, err error) {
+func main_2(lines []string) (n int, err error) {
 	N_rows := len(lines)
 	if N_rows == 0 {
 		return 0, nil

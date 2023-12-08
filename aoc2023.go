@@ -107,29 +107,13 @@ func main() {
 	var value int
 	switch day {
 	case 1:
-		if part == 1 {
-			value, err = day01.Main_1(lines)
-		} else {
-			value, err = day01.Main_2(lines)
-		}
+		value, err = day01.Main(part, lines)
 	case 2:
-		if part == 1 {
-			value, err = day02.Main_1(lines)
-		} else {
-			value, err = day02.Main_2(lines)
-		}
+		value, err = day02.Main(part, lines)
 	case 3:
-		if part == 1 {
-			value, err = day03.Main_1(lines)
-		} else {
-			value, err = day03.Main_2(lines)
-		}
+		value, err = day03.Main(part, lines)
 	case 4:
-		if part == 1 {
-			value, err = day04.Main_1(lines)
-		} else {
-			value, err = day04.Main_2(lines)
-		}
+		value, err = day04.Main(part, lines)
 	default:
 		stopf("Day %d is not implemented yet", day)
 	}

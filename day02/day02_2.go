@@ -1,6 +1,6 @@
 package day02
 
-func Main_2(lines []string) (n int, err error) {
+func main_2(lines []string) (n int, err error) {
 	sum_power_sets := 0
 	for _, line := range lines {
 		line, err = simplifyLine(line)

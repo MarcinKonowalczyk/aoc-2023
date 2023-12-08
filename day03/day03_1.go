@@ -6,7 +6,17 @@ import (
 	"strconv"
 )
 
-func Main_1(lines []string) (n int, err error) {
+func Main(part int, lines []string) (n int, err error) {
+	if part == 1 {
+		return main_1(lines)
+	} else if part == 2 {
+		return main_2(lines)
+	} else {
+		return -1, fmt.Errorf("invalid part")
+	}
+}
+
+func main_1(lines []string) (n int, err error) {
 	N_rows := len(lines)
 	if N_rows == 0 {
 		return 0, nil

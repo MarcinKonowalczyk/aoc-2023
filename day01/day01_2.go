@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func Main_2(lines []string) (n int, err error) {
+func main_2(lines []string) (n int, err error) {
 	numbers := make([]int, len(lines))
 
 	for i, line := range lines {

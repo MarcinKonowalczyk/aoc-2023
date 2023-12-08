@@ -6,7 +6,17 @@ import (
 	"fmt"
 )
 
-func Main_1(lines []string) (n int, err error) {
+func Main(part int, lines []string) (n int, err error) {
+	if part == 1 {
+		return main_1(lines)
+	} else if part == 2 {
+		return main_2(lines)
+	} else {
+		return -1, errors.New("invalid part")
+	}
+}
+
+func main_1(lines []string) (n int, err error) {
 	numbers := make([]int, len(lines))
 
 	for i, line := range lines {
