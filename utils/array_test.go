@@ -4,10 +4,9 @@ import (
 	"testing"
 )
 
-func TestReduceArray(t *testing.T) {
-	// Cast t to MyT
+func TestArrayReduce(t *testing.T) {
 	arr := []int{1, 2, 3, 4, 5}
-	result := ReduceArray(arr, 0, func(a, b int) int { return a + b })
+	result := ArrayReduce(arr, 0, func(a, b int) int { return a + b })
 	AssertEqual(t, result, 15)
 	AssertEqual(t, result, 15)
 }
@@ -24,4 +23,11 @@ func TestMaxArray(t *testing.T) {
 	result, idx, _ := MaxArray(arr)
 	AssertEqual(t, result, 5)
 	AssertEqual(t, idx, 4)
+}
+
+func TestArrayArrayIntersection(t *testing.T) {
+	arr1 := []int{1, 2, 3, 4, 5}
+	arr2 := []int{3, 4, 5, 6, 7}
+	result := ArrayArrayIntersection(arr1, arr2)
+	AssertEqualWithComparator(t, result, []int{3, 4, 5}, CompareArrays)
 }

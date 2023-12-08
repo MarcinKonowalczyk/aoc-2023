@@ -16,7 +16,7 @@ func main_2(lines []string) (n int, err error) {
 		numbers[i] = num
 	}
 
-	n = utils.ReduceArray(numbers, 0, func(a, b int) int { return a + b })
+	n = utils.ArrayReduce(numbers, 0, func(a, b int) int { return a + b })
 
 	return n, nil
 }
