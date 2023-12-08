@@ -5,6 +5,7 @@ import (
 	"aoc2023/day02"
 	"aoc2023/day03"
 	"aoc2023/day04"
+	"aoc2023/day05"
 	"errors"
 	"flag"
 	"fmt"
@@ -114,6 +115,48 @@ func main() {
 		value, err = day03.Main(part, lines)
 	case 4:
 		value, err = day04.Main(part, lines)
+	case 5:
+		value, err = day05.Main(part, lines)
+	// case 6:
+	// 	value, err = day06.Main(part, lines)
+	// case 7:
+	// 	value, err = day07.Main(part, lines)
+	// case 8:
+	// 	value, err = day08.Main(part, lines)
+	// case 9:
+	// 	value, err = day09.Main(part, lines)
+	// case 10:
+	// 	value, err = day10.Main(part, lines)
+	// case 11:
+	// 	value, err = day11.Main(part, lines)
+	// case 12:
+	// 	value, err = day12.Main(part, lines)
+	// case 13:
+	// 	value, err = day13.Main(part, lines)
+	// case 14:
+	// 	value, err = day14.Main(part, lines)
+	// case 15:
+	// 	value, err = day15.Main(part, lines)
+	// case 16:
+	// 	value, err = day16.Main(part, lines)
+	// case 17:
+	// 	value, err = day17.Main(part, lines)
+	// case 18:
+	// 	value, err = day18.Main(part, lines)
+	// case 19:
+	// 	value, err = day19.Main(part, lines)
+	// case 20:
+	// 	value, err = day20.Main(part, lines)
+	// case 21:
+	// 	value, err = day21.Main(part, lines)
+	// case 22:
+	// 	value, err = day22.Main(part, lines)
+	// case 23:
+	// 	value, err = day23.Main(part, lines)
+	// case 24:
+	// 	value, err = day24.Main(part, lines)
+	// case 25:
+	// 	value, err = day25.Main(part, lines)
 	default:
 		stopf("Day %d is not implemented yet", day)
 	}
