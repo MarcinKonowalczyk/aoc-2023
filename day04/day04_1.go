@@ -44,7 +44,7 @@ var lineRe = regexp.MustCompile(`Card +(?P<Card>\d+): +(?P<Winning>[^\|]+) ?\| ?
 
 func lineToNumbers(line string) (numbers, error) {
 
-	match := utils.GetParamsCompiledRe(lineRe, line)
+	match := utils.GetNamedSubexpsCompiledRe(lineRe, line)
 	if match["Rest"] != "" {
 		return numbers{}, fmt.Errorf("invalid line %s", line)
 	}

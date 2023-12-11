@@ -8,7 +8,7 @@ import (
 func StringOfNumbersToNumbers(s string) ([]int, error) {
 	s = strings.Trim(s, " ")
 	parts := strings.Split(s, " ")
-	parts = FilterArray(parts, func(s string) bool {
+	parts = ArrayFilter(parts, func(s string) bool {
 		return s != ""
 	})
 	var result []int
