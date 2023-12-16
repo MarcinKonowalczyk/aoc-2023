@@ -37,13 +37,12 @@ func main_1(lines []string) (n int, err error) {
 	return total_score, nil
 }
 
-type handType int
-
 type Hand struct {
-	cards     string
-	hand_type handType
-	bid       int
+	cards string
+	bid   int
 }
+
+type handType int
 
 const (
 	HIGH_CARD handType = iota
@@ -55,7 +54,7 @@ const (
 	FIVE_OF_A_KIND
 )
 
-func parseHandType(cards string) handType {
+func cardsToType(cards string) handType {
 	if len(cards) != 5 {
 		panic("invalid hand")
 	}
@@ -116,26 +115,25 @@ func parseLine(line string) (hand Hand, err error) {
 		return Hand{}, fmt.Errorf("invalid bid")
 	}
 
-	hand_type := parseHandType(cards_string)
-
 	return Hand{
 		cards_string,
-		hand_type,
 		bid,
 	}, nil
 }
 
 func orderHands(hands []Hand) {
 	sort.Slice(hands, func(i, j int) bool {
-		hand_1 := hands[i]
-		hand_2 := hands[j]
-		if hand_1.hand_type != hand_2.hand_type {
-			return hand_1.hand_type < hand_2.hand_type
+		hand_1_cards := hands[i].cards
+		hand_2_cards := hands[j].cards
+		hand_type_1 := cardsToType(hand_1_cards)
+		hand_type_2 := cardsToType(hand_2_cards)
+		if hand_type_1 != hand_type_2 {
+			return hand_type_1 < hand_type_2
 		} else {
 			for i := 0; i < 5; i++ {
-				if hand_1.cards[i] != hand_2.cards[i] {
-					ith_card_1 := rune(hand_1.cards[i])
-					ith_card_2 := rune(hand_2.cards[i])
+				ith_card_1 := rune(hand_1_cards[i])
+				ith_card_2 := rune(hand_2_cards[i])
+				if ith_card_1 != ith_card_2 {
 					return cardComparison(ith_card_1, ith_card_2)
 				}
 			}
