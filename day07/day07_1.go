@@ -3,6 +3,7 @@ package day07
 import (
 	"aoc2023/utils"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -18,16 +19,22 @@ func Main(part int, lines []string) (n int, err error) {
 }
 
 func main_1(lines []string) (n int, err error) {
-	fmt.Println("Hello from main_1")
-	fmt.Printf("Got %d lines\n", len(lines))
+	hands := make([]Hand, 0)
 	for _, line := range lines {
 		hand, err := parseLine(line)
 		if err != nil {
 			return 0, err
 		}
-		fmt.Println(hand)
+		hands = append(hands, hand)
 	}
-	return 0, nil
+	orderHands(hands)
+	total_score := 0
+	for i, hand := range hands {
+		rank := i + 1
+		score := hand.bid * rank
+		total_score += score
+	}
+	return total_score, nil
 }
 
 type handType int
@@ -39,13 +46,13 @@ type Hand struct {
 }
 
 const (
-	FIVE_OF_A_KIND handType = iota
-	FOUR_OF_A_KIND
-	FULL_HOUSE
-	THREE_OF_A_KIND
-	TWO_PAIR
+	HIGH_CARD handType = iota
 	ONE_PAIR
-	HIGH_CARD
+	TWO_PAIR
+	THREE_OF_A_KIND
+	FULL_HOUSE
+	FOUR_OF_A_KIND
+	FIVE_OF_A_KIND
 )
 
 func parseHandType(cards string) handType {
@@ -116,4 +123,36 @@ func parseLine(line string) (hand Hand, err error) {
 		hand_type,
 		bid,
 	}, nil
+}
+
+func orderHands(hands []Hand) {
+	sort.Slice(hands, func(i, j int) bool {
+		hand_1 := hands[i]
+		hand_2 := hands[j]
+		if hand_1.hand_type != hand_2.hand_type {
+			return hand_1.hand_type < hand_2.hand_type
+		} else {
+			for i := 0; i < 5; i++ {
+				if hand_1.cards[i] != hand_2.cards[i] {
+					ith_card_1 := rune(hand_1.cards[i])
+					ith_card_2 := rune(hand_2.cards[i])
+					return cardComparison(ith_card_1, ith_card_2)
+				}
+			}
+			return false
+		}
+	})
+}
+
+var card_order = []rune{
+	'2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A',
+}
+
+func cardComparison(card_1, card_2 rune) bool {
+	i1 := utils.ArrayIndexOf(card_order, card_1)
+	i2 := utils.ArrayIndexOf(card_order, card_2)
+	if i1 == -1 || i2 == -1 {
+		panic("invalid card")
+	}
+	return i1 < i2
 }
