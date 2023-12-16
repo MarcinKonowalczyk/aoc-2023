@@ -136,6 +136,17 @@ func ArrayArrayIntersection[T comparable](a, b []T) []T {
 	return intersection
 }
 
+// Find an element in an array. Return the index of the element if found, or -1
+// if not found.
+func ArrayIndexOf[T comparable](arr []T, elem T) int {
+	for i, n := range arr {
+		if n == elem {
+			return i
+		}
+	}
+	return -1
+}
+
 // Interface for numeric types
 type Numeric interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64 | ~complex64 | ~complex128
