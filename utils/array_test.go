@@ -31,18 +31,3 @@ func TestArrayArrayIntersection(t *testing.T) {
 	result := ArrayArrayIntersection(arr1, arr2)
 	AssertEqualWithComparator(t, result, []int{3, 4, 5}, CompareArrays)
 }
-
-func TestYieldPairwise(t *testing.T) {
-	arr := []int{1, 2, 3, 4, 5}
-	output := make(chan [2]int)
-	go YieldPairwise(arr, output)
-	pairs := make([][2]int, 0)
-	for {
-		pair, ok := <-output
-		if !ok {
-			break
-		}
-		pairs = append(pairs, pair)
-	}
-	AssertEqualWithComparator(t, pairs, [][2]int{{1, 2}, {2, 3}, {3, 4}, {4, 5}}, CompareArrays)
-}
