@@ -119,7 +119,7 @@ func parseMapFromLines(lines []string, header string) ([]MapLine, []string, erro
 	})
 
 	parsed_map, err := utils.ArrayMapWithError(map_lines, func(line string) (MapLine, error) {
-		result, err := utils.StringOfNumbersToNumbers(line)
+		result, err := utils.StringOfNumbersToInts(line)
 		if err != nil {
 			return MapLine{}, err
 		}
@@ -157,7 +157,7 @@ var SEEDS_LINE_RE = regexp.MustCompile(`seeds: (?P<seeds>(\d+ *)+)`)
 
 func parseSeedsLine(line string) ([]int, error) {
 	matches := utils.GetNamedSubexpsCompiledRe(SEEDS_LINE_RE, line)
-	seeds, err := utils.StringOfNumbersToNumbers(matches["seeds"])
+	seeds, err := utils.StringOfNumbersToInts(matches["seeds"])
 	if err != nil {
 		return nil, err
 	}

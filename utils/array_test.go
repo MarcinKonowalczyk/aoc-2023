@@ -8,7 +8,6 @@ func TestArrayReduce(t *testing.T) {
 	arr := []int{1, 2, 3, 4, 5}
 	result := ArrayReduce(arr, 0, func(a, b int) int { return a + b })
 	AssertEqual(t, result, 15)
-	AssertEqual(t, result, 15)
 }
 
 func TestMinArray(t *testing.T) {

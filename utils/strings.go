@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func StringOfNumbersToNumbers(s string) ([]int, error) {
+func StringOfNumbersToInts(s string) ([]int, error) {
 	s = strings.Trim(s, " ")
 	parts := strings.Split(s, " ")
 	parts = ArrayFilter(parts, func(s string) bool {

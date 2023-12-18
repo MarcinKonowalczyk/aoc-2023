@@ -42,7 +42,7 @@ type Hand struct {
 	bid   int
 }
 
-type handType int
+type handType float32
 
 const (
 	HIGH_CARD handType = iota
@@ -54,6 +54,27 @@ const (
 	FIVE_OF_A_KIND
 )
 
+func handTypeToString(hand_type handType) string {
+	switch hand_type {
+	case HIGH_CARD:
+		return "HIGH_CARD"
+	case ONE_PAIR:
+		return "ONE_PAIR"
+	case TWO_PAIR:
+		return "TWO_PAIR"
+	case THREE_OF_A_KIND:
+		return "THREE_OF_A_KIND"
+	case FULL_HOUSE:
+		return "FULL_HOUSE"
+	case FOUR_OF_A_KIND:
+		return "FOUR_OF_A_KIND"
+	case FIVE_OF_A_KIND:
+		return "FIVE_OF_A_KIND"
+	default:
+		panic("invalid hand type")
+	}
+}
+
 func cardsToType(cards string) handType {
 	if len(cards) != 5 {
 		panic("invalid hand")
@@ -63,10 +84,10 @@ func cardsToType(cards string) handType {
 	if len(count_map) == 1 {
 		return FIVE_OF_A_KIND
 	}
-	values := utils.MapValues(count_map)
+	_, values := utils.MapKeysAndValues(count_map)
 
 	if len(count_map) == 2 {
-		if utils.ArrayIndexOf(values, 4) != -1 {
+		if utils.ArrayContains(values, 4) {
 			// 4 and 1
 			return FOUR_OF_A_KIND
 		} else {
@@ -74,7 +95,7 @@ func cardsToType(cards string) handType {
 			return FULL_HOUSE
 		}
 	} else if len(count_map) == 3 {
-		if utils.ArrayIndexOf(values, 3) != -1 {
+		if utils.ArrayContains(values, 3) {
 			// Thee somewhere in the values
 			return THREE_OF_A_KIND
 		} else {
@@ -90,10 +111,10 @@ func cardsToType(cards string) handType {
 	}
 }
 
-func handCount(cards string) map[rune]int {
-	count := make(map[rune]int)
+func handCount(cards string) map[string]int {
+	count := make(map[string]int)
 	for _, card := range cards {
-		count[card]++
+		count[string(card)]++
 	}
 	return count
 }

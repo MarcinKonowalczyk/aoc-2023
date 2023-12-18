@@ -43,14 +43,14 @@ var TIMES_LINE_RE = regexp.MustCompile(`Time:(?P<times> *(\d+ *)+)`)
 
 func parseTimesLine(line string) (times []int, err error) {
 	matches := utils.GetNamedSubexpsCompiledRe(TIMES_LINE_RE, line)
-	return utils.StringOfNumbersToNumbers(matches["times"])
+	return utils.StringOfNumbersToInts(matches["times"])
 }
 
 var DISTANCES_LINE_RE = regexp.MustCompile(`Distance:(?P<distances> *(\d+ *)+)`)
 
 func parseDistancesLine(line string) (distances []int, err error) {
 	matches := utils.GetNamedSubexpsCompiledRe(DISTANCES_LINE_RE, line)
-	return utils.StringOfNumbersToNumbers(matches["distances"])
+	return utils.StringOfNumbersToInts(matches["distances"])
 }
 
 func parseLines(lines []string) (times []int, distances []int, err error) {

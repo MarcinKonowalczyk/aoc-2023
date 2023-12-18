@@ -26,7 +26,7 @@ func main_2(lines []string) (n int, err error) {
 func parseTimesLineRemoveSpaces(line string) (time int, err error) {
 	matches := utils.GetNamedSubexpsCompiledRe(TIMES_LINE_RE, line)
 	times_without_spaces := strings.ReplaceAll(matches["times"], " ", "")
-	numbers, err := utils.StringOfNumbersToNumbers(times_without_spaces)
+	numbers, err := utils.StringOfNumbersToInts(times_without_spaces)
 	if err != nil {
 		return -1, err
 	}
@@ -39,7 +39,7 @@ func parseTimesLineRemoveSpaces(line string) (time int, err error) {
 func parseDistancesLineRemoveSpaces(line string) (distance int, err error) {
 	matches := utils.GetNamedSubexpsCompiledRe(DISTANCES_LINE_RE, line)
 	distances_without_spaces := strings.ReplaceAll(matches["distances"], " ", "")
-	numbers, err := utils.StringOfNumbersToNumbers(distances_without_spaces)
+	numbers, err := utils.StringOfNumbersToInts(distances_without_spaces)
 	if err != nil {
 		return -1, err
 	}

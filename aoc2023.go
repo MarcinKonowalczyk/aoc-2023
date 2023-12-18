@@ -28,6 +28,7 @@ func stopf(format string, a ...any) {
 	}
 	os.Exit(1)
 }
+
 func main() {
 	flag.Parse()
 

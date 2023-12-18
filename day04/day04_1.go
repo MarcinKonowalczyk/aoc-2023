@@ -50,13 +50,13 @@ func lineToNumbers(line string) (numbers, error) {
 	}
 
 	winning_string := match["Winning"]
-	winning, err := utils.StringOfNumbersToNumbers(winning_string)
+	winning, err := utils.StringOfNumbersToInts(winning_string)
 	if err != nil {
 		return numbers{}, err
 	}
 
 	yours_string := match["Yours"]
-	yours, err := utils.StringOfNumbersToNumbers(yours_string)
+	yours, err := utils.StringOfNumbersToInts(yours_string)
 	if err != nil {
 		return numbers{}, err
 	}

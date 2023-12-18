@@ -147,6 +147,11 @@ func ArrayIndexOf[T comparable](arr []T, elem T) int {
 	return -1
 }
 
+// Convenience function to check if an element is in an array.
+func ArrayContains[T comparable](arr []T, elem T) bool {
+	return ArrayIndexOf(arr, elem) != -1
+}
+
 // Interface for numeric types
 type Numeric interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64 | ~complex64 | ~complex128
