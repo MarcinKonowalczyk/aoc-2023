@@ -71,66 +71,49 @@ func main_2(lines []string) (n int, err error) {
 			}
 		}
 
-		shortest_cycle_length := walkToEndNodeOfShortestCycle(cycles)
+		step := walkToEndNodeOfShortestCycle(cycles)
 		j := 0
+
+		partition := func(cycle Cycle) bool {
+			return cycle.end_node_steps != 0
+		}
+
+		cycles, cycles_at_end_node := utils.ArrayPartition(cycles, partition)
+
+		var new_cycles_at_end_node []Cycle
+
 		for {
-			fmt.Printf("j: %d\n", j)
-			fmt.Printf("cycles: %v\n", cycles)
-			fmt.Printf("shortest_cycle_length: %d\n", shortest_cycle_length)
-			// Calculate the steps until the next alignment for each cycle
-			next_alignments := []int{}
-			for _, cycle := range cycles {
-				fmt.Printf("cycle: %v\n", cycle)
-				next_alignments = append(next_alignments, calcNextEndStateAlignment(cycle, shortest_cycle_length))
-			}
-
-			fmt.Printf("next_alignments: %v\n", next_alignments)
-			if j > 1 {
-				panic("stop")
-			}
-
-			// Find the next alignment that occurs the soonest but is not 0
-			largest, _, err := utils.MaxArrayFunc(next_alignments, func(a, b int) bool {
-				if a == 0 {
-					return false
-				}
-				if b == 0 {
-					return true
-				}
-				return a > b
-			})
-
-			if err != nil {
-				panic(err)
-			}
+			// Remove the cycles that are at the end node and put them in the cycles_at_end_node array
+			cycles, new_cycles_at_end_node = utils.ArrayPartition(cycles, partition)
+			cycles_at_end_node = append(cycles_at_end_node, new_cycles_at_end_node...)
 
 			// Walk all the cycles forward by the largest number of steps
-			walkCycles(cycles, largest)
+			walkCycles(cycles, step)
 
-			// Check if we're done
-			if areAllCyclesAtEndNode(cycles) {
+			if len(cycles) == 0 {
+				// All the cycles are at the end node
 				break
 			}
 
-			// To find the next alignment, we need to find the cycle with the shortest cycle_steps
-			// Find cycle_steps of the cycles that are at the end node
-			cycle_steps := []int{}
-			for _, cycle := range cycles {
-				if cycle.end_node_steps == 0 {
-					cycle_steps = append(cycle_steps, cycle.cycle_steps)
-				}
+			// Find the lowest common multiple of the steps for the cycles at the end node
+			if len(new_cycles_at_end_node) > 0 {
+				// We found some more cycles at the end node
+				// Cycle steps for the cycles at the end node
+				end_node_cycle_steps := utils.ArrayMap(cycles_at_end_node, func(cycle Cycle) int {
+					return cycle.cycle_steps
+				})
+				fmt.Println("Found more cycles at the end node")
+				fmt.Println("calculating new step...")
+				step = utils.ArrayReduce(end_node_cycle_steps, 1, utils.LCM)
+
+				fmt.Println("N", len(cycles_at_end_node), "/", len(cycles)+len(cycles_at_end_node))
+				fmt.Println("step", step)
 			}
 
-			// Append the largest number of steps to the cycle_steps
-			cycle_steps = append(cycle_steps, largest)
-
-			fmt.Printf("cycle_steps: %v\n", cycle_steps)
-
-			// Find the lowest common multiple of the cycle_steps
-			shortest_cycle_length = utils.ArrayReduce(cycle_steps, 1, utils.LCM)
-
-			// New shortest cycle length is the lowest common multiple of the current shortest cycle length and the largest number of steps
-			// shortest_cycle_length = utils.LCM(shortest_cycle_length, largest)
+			if j%1_000_000 == 0 {
+				fmt.Printf("j: %d\n", j)
+				fmt.Printf("cycles: %v\n", cycles)
+			}
 			j++
 		}
 
@@ -140,7 +123,7 @@ func main_2(lines []string) (n int, err error) {
 		// 	if areAllCyclesAtEndNode(cycles) {
 		// 		break
 		// 	}
-		// 	walkCycles(cycles, shortest_cycle_length)
+		// 	walkCycles(cycles, step)
 		// 	j++
 		// 	if j%10_000_000 == 0 {
 		// 		fmt.Printf("j: %d, time: %v\n", j, time.Since(time_start))
@@ -158,6 +141,7 @@ func main_2(lines []string) (n int, err error) {
 }
 
 // 5681417444136477648 too high
+// 60916631012882
 
 func getStartingNodes(nodes map[string]Node) []string {
 	startingNodes := []string{}

@@ -30,3 +30,10 @@ func TestArrayArrayIntersection(t *testing.T) {
 	result := ArrayArrayIntersection(arr1, arr2)
 	AssertEqualWithComparator(t, result, []int{3, 4, 5}, CompareArrays)
 }
+
+func TestArrayPartition(t *testing.T) {
+	arr := []int{1, 2, 3, 4, 5}
+	left, right := ArrayPartition(arr, func(a int) bool { return a < 3 })
+	AssertEqualWithComparator(t, left, []int{1, 2}, CompareArrays)
+	AssertEqualWithComparator(t, right, []int{3, 4, 5}, CompareArrays)
+}

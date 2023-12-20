@@ -188,3 +188,16 @@ func ArrayPairwise[T any](arr []T) [][2]T {
 	}
 	return pairwise
 }
+
+func ArrayPartition[T any](arr []T, partition func(T) bool) ([]T, []T) {
+	left := make([]T, 0)
+	right := make([]T, 0)
+	for _, n := range arr {
+		if partition(n) {
+			left = append(left, n)
+		} else {
+			right = append(right, n)
+		}
+	}
+	return left, right
+}
