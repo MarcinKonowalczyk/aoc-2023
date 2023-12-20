@@ -34,36 +34,52 @@ func ArrayReduceWithError[T any, V any](arr []T, initial V, reduce func(V, T) (V
 	return result, nil
 }
 
-func MinArray[T cmp.Ordered](arr []T) (T, int, error) {
+// Index and value
+type IValue struct {
+	Index int
+	Value interface{}
+}
+
+func MinArrayFunc[T any](arr []T, less func(T, T) bool) (T, int, error) {
 	if len(arr) == 0 {
 		var zero T
 		return zero, -1, errors.New("array is empty")
 	}
-	var min T = arr[0]
-	var min_idx int = 0
-	for i := 0; i < len(arr); i++ {
-		if arr[i] < min {
-			min = arr[i]
-			min_idx = i
+
+	result := ArrayReduce(arr, IValue{0, arr[0]}, func(state IValue, elem T) IValue {
+		if less(elem, state.Value.(T)) {
+			state.Value = elem
+			state.Index = state.Index + 1
 		}
+		return state
+	})
+
+	return result.Value.(T), result.Index, nil
+}
+
+func MinArray[T cmp.Ordered](arr []T) (T, int, error) {
+	return MinArrayFunc(arr, func(a, b T) bool { return a < b })
+}
+
+func MaxArrayFunc[T any](arr []T, greater func(T, T) bool) (T, int, error) {
+	if len(arr) == 0 {
+		var zero T
+		return zero, -1, errors.New("array is empty")
 	}
-	return min, min_idx, nil
+
+	result := ArrayReduce(arr, IValue{0, arr[0]}, func(state IValue, elem T) IValue {
+		if greater(elem, state.Value.(T)) {
+			state.Value = elem
+			state.Index = state.Index + 1
+		}
+		return state
+	})
+
+	return result.Value.(T), result.Index, nil
 }
 
 func MaxArray[T cmp.Ordered](arr []T) (T, int, error) {
-	if len(arr) == 0 {
-		var zero T
-		return zero, -1, errors.New("array is empty")
-	}
-	var max T = arr[0]
-	var max_idx int = 0
-	for i := 0; i < len(arr); i++ {
-		if arr[i] > max {
-			max = arr[i]
-			max_idx = i
-		}
-	}
-	return max, max_idx, nil
+	return MaxArrayFunc(arr, func(a, b T) bool { return a > b })
 }
 
 // https://stackoverflow.com/a/37563128/2531987
