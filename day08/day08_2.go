@@ -4,6 +4,7 @@ import (
 	"aoc2023/utils"
 	"fmt"
 	"sort"
+	"time"
 )
 
 func main_2(lines []string) (n int, err error) {
@@ -74,45 +75,50 @@ func main_2(lines []string) (n int, err error) {
 		step := walkToEndNodeOfShortestCycle(cycles)
 		j := 0
 
-		partition := func(cycle Cycle) bool {
-			return cycle.end_node_steps != 0
-		}
+		var cycles_at_end_node []Cycle = utils.ArrayFilter(cycles, func(cycle Cycle) bool {
+			return cycle.end_node_steps == 0
+		})
 
-		cycles, cycles_at_end_node := utils.ArrayPartition(cycles, partition)
+		var N_cycles_at_end_node int = len(cycles_at_end_node)
 
-		var new_cycles_at_end_node []Cycle
+		time_start := time.Now()
 
 		for {
-			// Remove the cycles that are at the end node and put them in the cycles_at_end_node array
-			cycles, new_cycles_at_end_node = utils.ArrayPartition(cycles, partition)
-			cycles_at_end_node = append(cycles_at_end_node, new_cycles_at_end_node...)
-
 			// Walk all the cycles forward by the largest number of steps
 			walkCycles(cycles, step)
 
-			if len(cycles) == 0 {
+			// Find all the cycles that are at the end node
+			cycles_at_end_node = utils.ArrayFilter(cycles, func(cycle Cycle) bool {
+				return cycle.end_node_steps == 0
+			})
+
+			new_N_cycles_at_end_node := len(cycles_at_end_node)
+
+			if new_N_cycles_at_end_node == len(cycles) {
 				// All the cycles are at the end node
 				break
 			}
 
 			// Find the lowest common multiple of the steps for the cycles at the end node
-			if len(new_cycles_at_end_node) > 0 {
+			if new_N_cycles_at_end_node != N_cycles_at_end_node {
 				// We found some more cycles at the end node
 				// Cycle steps for the cycles at the end node
 				end_node_cycle_steps := utils.ArrayMap(cycles_at_end_node, func(cycle Cycle) int {
 					return cycle.cycle_steps
 				})
-				fmt.Println("Found more cycles at the end node")
-				fmt.Println("calculating new step...")
+				fmt.Println("end_node_cycle_steps:", end_node_cycle_steps)
 				step = utils.ArrayReduce(end_node_cycle_steps, 1, utils.LCM)
+				N_cycles_at_end_node = new_N_cycles_at_end_node
 
-				fmt.Println("N", len(cycles_at_end_node), "/", len(cycles)+len(cycles_at_end_node))
+				fmt.Println("Found more cycles at the end node")
+				fmt.Println("N", new_N_cycles_at_end_node, "/", len(cycles))
 				fmt.Println("step", step)
 			}
 
-			if j%1_000_000 == 0 {
+			if j%1_00 == 0 {
 				fmt.Printf("j: %d\n", j)
 				fmt.Printf("cycles: %v\n", cycles)
+				fmt.Printf("time: %v\n", time.Since(time_start))
 			}
 			j++
 		}
@@ -141,7 +147,6 @@ func main_2(lines []string) (n int, err error) {
 }
 
 // 5681417444136477648 too high
-// 60916631012882
 
 func getStartingNodes(nodes map[string]Node) []string {
 	startingNodes := []string{}
