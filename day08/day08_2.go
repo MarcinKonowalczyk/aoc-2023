@@ -75,11 +75,13 @@ func main_2(lines []string) (n int, err error) {
 		step := walkToEndNodeOfShortestCycle(cycles)
 		j := 0
 
-		var cycles_at_end_node []Cycle = utils.ArrayFilter(cycles, func(cycle Cycle) bool {
-			return cycle.end_node_steps == 0
-		})
+		partition := func(cycle Cycle) bool {
+			return cycle.end_node_steps != 0
+		}
+		cycles, cycles_at_end_node := utils.ArrayPartition(cycles, partition)
 
-		var N_cycles_at_end_node int = len(cycles_at_end_node)
+		fmt.Println("cycles:", cycles)
+		fmt.Println("cycles_at_end_node:", cycles_at_end_node)
 
 		time_start := time.Now()
 
@@ -88,30 +90,30 @@ func main_2(lines []string) (n int, err error) {
 			walkCycles(cycles, step)
 
 			// Find all the cycles that are at the end node
-			cycles_at_end_node = utils.ArrayFilter(cycles, func(cycle Cycle) bool {
-				return cycle.end_node_steps == 0
-			})
+			new_cycles, new_cycles_at_end_node := utils.ArrayPartition(cycles, partition)
 
-			new_N_cycles_at_end_node := len(cycles_at_end_node)
-
-			if new_N_cycles_at_end_node == len(cycles) {
+			if len(new_cycles) == 0 {
 				// All the cycles are at the end node
+				cycles_at_end_node = append(cycles_at_end_node, new_cycles_at_end_node...)
 				break
 			}
 
 			// Find the lowest common multiple of the steps for the cycles at the end node
-			if new_N_cycles_at_end_node != N_cycles_at_end_node {
+			if len(new_cycles_at_end_node) > 0 {
+				cycles_at_end_node = append(cycles_at_end_node, new_cycles_at_end_node...)
+				cycles = new_cycles
+
 				// We found some more cycles at the end node
 				// Cycle steps for the cycles at the end node
 				end_node_cycle_steps := utils.ArrayMap(cycles_at_end_node, func(cycle Cycle) int {
 					return cycle.cycle_steps
 				})
+
 				fmt.Println("end_node_cycle_steps:", end_node_cycle_steps)
 				step = utils.ArrayReduce(end_node_cycle_steps, 1, utils.LCM)
-				N_cycles_at_end_node = new_N_cycles_at_end_node
 
 				fmt.Println("Found more cycles at the end node")
-				fmt.Println("N", new_N_cycles_at_end_node, "/", len(cycles))
+				fmt.Println("N_cycles:", len(cycles))
 				fmt.Println("step", step)
 			}
 
@@ -122,6 +124,8 @@ func main_2(lines []string) (n int, err error) {
 			}
 			j++
 		}
+
+		fmt.Println("cycles_at_end_node:", cycles_at_end_node)
 
 		// time_start := time.Now()
 		// j := 0
@@ -147,6 +151,8 @@ func main_2(lines []string) (n int, err error) {
 }
 
 // 5681417444136477648 too high
+// 174746496451025264
+// 456161953452464340
 
 func getStartingNodes(nodes map[string]Node) []string {
 	startingNodes := []string{}
@@ -178,7 +184,7 @@ type NodeAndDirection struct {
 }
 
 type Cycle struct {
-	warmup_steps   int
+	warmup_steps   uint64
 	cycle_steps    int
 	end_node_steps int
 }
@@ -352,7 +358,7 @@ func findCycle(nodes map[string]Node, directions []bool, current_node string) Cy
 	// }
 
 	cycle := Cycle{
-		warmup_steps:   warmup_steps,
+		warmup_steps:   uint64(warmup_steps),
 		cycle_steps:    cycle_steps,
 		end_node_steps: end_node_steps,
 	}
@@ -384,7 +390,7 @@ func checkCycle(nodes_map map[string]Node, directions []bool, current_node strin
 	var current_state NodeAndDirection
 	var stop_state NodeAndDirection
 
-	for i := 0; i < warmup_steps; i++ {
+	for i := uint64(0); i < warmup_steps; i++ {
 		direction := <-directions_chan
 		current_state = NodeAndDirection{
 			node:      current_node,
@@ -437,7 +443,7 @@ func checkCycle(nodes_map map[string]Node, directions []bool, current_node strin
 
 func alignCycles(cycles []Cycle) {
 	// Find the cycle with the longest warmup_steps
-	max_warmup_steps := 0
+	max_warmup_steps := uint64(0)
 	for _, cycle := range cycles {
 		if cycle.warmup_steps > max_warmup_steps {
 			max_warmup_steps = cycle.warmup_steps
@@ -446,22 +452,25 @@ func alignCycles(cycles []Cycle) {
 
 	// Align all the cycles to the same starting point
 	for i, cycle := range cycles {
-		cycles[i].Walk(max_warmup_steps - cycle.warmup_steps)
+		cycles[i].Walk(int(max_warmup_steps - cycle.warmup_steps))
 	}
 }
 
 // Walk the cycle forward or backward by delta steps. Wrap around the end of the cycle.
 func (cycle *Cycle) Walk(delta int) {
-	cycle.warmup_steps += delta
+	cycle.warmup_steps += uint64(delta)
 	cycle.end_node_steps -= delta
 
 	// Wrap the end node steps
-	for cycle.end_node_steps < 0 {
-		cycle.end_node_steps += cycle.cycle_steps
+	if cycle.end_node_steps < 0 {
+		cycle.end_node_steps = cycle.cycle_steps - ((-cycle.end_node_steps) % cycle.cycle_steps)
+		if cycle.end_node_steps == cycle.cycle_steps {
+			cycle.end_node_steps = 0
+		}
 	}
 
-	for cycle.end_node_steps >= cycle.cycle_steps {
-		cycle.end_node_steps -= cycle.cycle_steps
+	if cycle.end_node_steps >= cycle.cycle_steps {
+		cycle.end_node_steps = cycle.end_node_steps % cycle.cycle_steps
 	}
 }
 
