@@ -238,3 +238,12 @@ func ArrayAny[T any](arr []T, test func(T) bool) bool {
 	}
 	return false
 }
+
+func ArrayReverse[T any](arr []T) []T {
+	N := len(arr)
+	reversed := make([]T, N)
+	for i := 0; i < N; i++ {
+		reversed[i] = arr[N-i-1]
+	}
+	return reversed
+}

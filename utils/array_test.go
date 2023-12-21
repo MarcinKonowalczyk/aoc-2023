@@ -66,3 +66,14 @@ func TestArrayAny(t *testing.T) {
 	result = ArrayAny(arr1, func(a int) bool { return a < 0 })
 	AssertEqual(t, result, false)
 }
+
+func TestArrayReverse(t *testing.T) {
+	// Test odd
+	arr1 := []int{1, 2, 3, 4, 5}
+	result := ArrayReverse(arr1)
+	AssertEqualWithComparator(t, result, []int{5, 4, 3, 2, 1}, CompareArrays)
+	// Test even
+	arr2 := []int{1, 2, 3, 4}
+	result = ArrayReverse(arr2)
+	AssertEqualWithComparator(t, result, []int{4, 3, 2, 1}, CompareArrays)
+}

@@ -58,3 +58,27 @@ func CompareArrays[T comparable](a []T, b []T) bool {
 	}
 	return true
 }
+
+func CompareMaps[T comparable, V comparable](a map[T]V, b map[T]V) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	var vb V
+	var ok bool
+
+	// NOTE: the range on a map is in random order
+	for k, va := range a {
+		// Check if key exists in b
+		if vb, ok = b[k]; !ok {
+			return false
+		}
+		// Check if value is the same
+		if va != vb {
+			return false
+		}
+	}
+
+	// All keys of a exist in b, and a and b have the same length, hence they
+	// must have the same keys
+	return true
+}

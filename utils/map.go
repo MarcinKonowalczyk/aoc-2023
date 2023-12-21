@@ -71,3 +71,11 @@ func MapItemsSortFunc[T comparable, V any](m map[T]V, less func(T, T) bool) []It
 	sort.SliceStable(items, cmp)
 	return items
 }
+
+func MapMap[T comparable, V1 any, V2 any](m map[T]V1, map_func func(V1) V2) map[T]V2 {
+	result := make(map[T]V2)
+	for k, v := range m {
+		result[k] = map_func(v)
+	}
+	return result
+}
