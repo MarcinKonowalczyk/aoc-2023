@@ -82,6 +82,11 @@ if [ $EXTENSION = "go" ] && [[ $FILENAME == day* ]]; then
     # echo "Test file path: $TEST_FILE_PATH"
     # echo "Full file path: $FULL_FILE_PATH"
 
+    # if test file dooesn't exist try to fallback to a test file with an underscore
+    if [ ! -f $TEST_FILE_PATH ]; then
+        TEST_FILE_PATH="$ROOT_FOLDER/data/test/day${DAY}_1.txt"
+    fi
+
     (
         cd $ROOT_FOLDER
         go run . $DAY $PART $TEST_FILE_PATH
