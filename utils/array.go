@@ -201,3 +201,40 @@ func ArrayPartition[T any](arr []T, partition func(T) bool) ([]T, []T) {
 	}
 	return left, right
 }
+
+func ArrayDiff[T Numeric](arr []T, order int) ([]T, error) {
+	if order < 0 {
+		return nil, errors.New("order must be non-negative")
+	}
+	if order == 0 {
+		return arr, nil
+	}
+	N := len(arr)
+	if N < (order + 1) {
+		return nil, errors.New("For order k, array must have at least k+1 elements")
+	}
+	diff := ArrayMap(ArrayPairwise(arr), func(pair [2]T) T { return pair[1] - pair[0] })
+	if order == 1 {
+		return diff, nil
+	} else {
+		return ArrayDiff(diff, order-1)
+	}
+}
+
+func ArrayAll[T any](arr []T, test func(T) bool) bool {
+	for _, n := range arr {
+		if !test(n) {
+			return false
+		}
+	}
+	return true
+}
+
+func ArrayAny[T any](arr []T, test func(T) bool) bool {
+	for _, n := range arr {
+		if test(n) {
+			return true
+		}
+	}
+	return false
+}
