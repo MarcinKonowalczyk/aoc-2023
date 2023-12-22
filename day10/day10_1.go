@@ -440,5 +440,9 @@ func walkFullCircle(pipe_map *PipeMap) []direction {
 		walk_direction = here.otherDirection(come_from)
 	}
 
+	if pipe_map.x != sx || pipe_map.y != sy {
+		panic(fmt.Errorf("did not end up at the starting point"))
+	}
+
 	return directions
 }
