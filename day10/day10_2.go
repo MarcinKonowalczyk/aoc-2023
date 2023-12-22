@@ -1,12 +1,23 @@
 package day10
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main_2(lines []string) (n int, err error) {
-	fmt.Println("Hello from main_2")
-	fmt.Printf("Got %d lines\n", len(lines))
-	for _, line := range lines {
-		fmt.Println(line)
+	pipe_map := parseLinesToPipeMap(lines)
+	if pipe_map.IsEmpty() {
+		return 0, fmt.Errorf("empty pipe map")
 	}
-	return 0, nil
+
+	// fmt.Println(pipe_map)
+	// fmt.Println("start at", pipe_map.x, pipe_map.y)
+
+	directions := walkFullCircle(&pipe_map)
+
+	// fmt.Println("directions:", directions)
+
+	furthest := len(directions) / 2
+
+	return furthest, nil
 }
