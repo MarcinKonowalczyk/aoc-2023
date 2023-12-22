@@ -64,8 +64,9 @@ func (m AugmentedPipeMap) String() string {
 				s += "?"
 			case CYCLE:
 				s += string(m.pipe_map.m[y][x])
+				// s += "*"
 			case INSIDE:
-				s += "i"
+				s += "I"
 			case OUTSIDE:
 				s += ","
 			}
@@ -157,9 +158,10 @@ func (augmented *AugmentedPipeMap) determineCurrentTileType() {
 	}
 
 	line_to_top_edge := augmented.lineToEdge(NORTH)
-	fmt.Println(line_to_top_edge)
+	line_to_top_edge = append(line_to_top_edge, GROUND)
+	// fmt.Println(line_to_top_edge)
 	cycle_crossings := 0
-	var prev_pipe Pipe = GROUND
+	var entrance_pipe Pipe = GROUND
 	for i, pipe := range line_to_top_edge {
 
 		if i == 0 {
@@ -173,7 +175,7 @@ func (augmented *AugmentedPipeMap) determineCurrentTileType() {
 
 		switch pipe {
 		case GROUND:
-			if prev_pipe == GROUND {
+			if entrance_pipe == GROUND {
 				// Whether we're inside or outside the cycle, we've come from a
 				// GROUND tile and we're still on a GROUND tile. We're not
 				// crossing the cycle
@@ -181,23 +183,52 @@ func (augmented *AugmentedPipeMap) determineCurrentTileType() {
 				// We've come from a pipe and we're now on a GROUND tile. We've
 				// crossed the cycle (leaving it)
 				cycle_crossings++
+				entrance_pipe = GROUND
 			}
+		case HORIZONTAL, NORTH_EAST, NORTH_WEST:
+			// Pipes not connected from the south
+			if entrance_pipe == GROUND {
+				// Entrance pipe is ground, therefore we've not been inside of
+				// the cycle. Just set the entrance pipe.
+			} else {
+				// We've entered a pipe from another pipe. We must have
+				// crossed a cycle.
+				cycle_crossings++
+			}
+			entrance_pipe = pipe
 		case VERTICAL:
-			// Whatever we've come from, we're still in the cycle
-		case HORIZONTAL:
-			// Whatever we've come from, we've crossed the cycle
-			cycle_crossings++
-		case NORTH_EAST:
-			cycle_crossings++
-		case NORTH_WEST:
-			cycle_crossings++
+			// We're inside the cycle and we're going to stay inside
+			// the cycle. Do nothing.
 		case SOUTH_EAST:
-		// We have not left the cycle
+			if entrance_pipe == NORTH_WEST {
+				// We've entered the cycle, walked through a vertical
+				// segment, and we're now crossing it
+				cycle_crossings++
+				entrance_pipe = GROUND
+			} else if entrance_pipe == NORTH_EAST {
+				// We've entered the cycle, walked through a vertical
+				// segment, and we're now leaving it without crossing
+				// the cycle
+				entrance_pipe = GROUND
+			} else {
+				fmt.Println("entrance pipe:", entrance_pipe)
+				panic("i dont think this should be possible (SOUTH_EAST)")
+			}
 		case SOUTH_WEST:
-			// We have not left the cycle
+			if entrance_pipe == NORTH_EAST {
+				// We've entered the cycle, walked through a vertical
+				// segment, and we're now crossing it
+				cycle_crossings++
+				entrance_pipe = GROUND
+			} else if entrance_pipe == NORTH_WEST {
+				// We've entered the cycle, walked through a vertical
+				// segment, and we're now leaving it without crossing
+				// the cycle
+				entrance_pipe = GROUND
+			} else {
+				panic("i dont think this should be possible (SOUTH_WEST)")
+			}
 		}
-
-		prev_pipe = pipe
 	}
 
 	// If we crossed the cycle an odd number of times, we're inside
