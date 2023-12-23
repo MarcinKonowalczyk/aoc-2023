@@ -79,3 +79,15 @@ func MapMap[T comparable, V1 any, V2 any](m map[T]V1, map_func func(V1) V2) map[
 	}
 	return result
 }
+
+// Reduce a map using a reduce function. The accumulator is initialized to the
+// initial value and the reduce function is applied to each value of the map
+// and the accumulator. The result is returned as the final accumulator.
+// The keys are not used.
+func MapReduceValues[T comparable, V1 any, V2 any](m map[T]V1, initial V2, reduce func(V2, V1) V2) V2 {
+	result := initial
+	for _, v := range m {
+		result = reduce(result, v)
+	}
+	return result
+}

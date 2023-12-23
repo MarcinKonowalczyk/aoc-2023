@@ -1,12 +1,17 @@
 package day11
 
-import "fmt"
+import (
+	"aoc2023/utils"
+)
 
 func main_2(lines []string) (n int, err error) {
-	fmt.Println("Hello from main_2")
-	fmt.Printf("Got %d lines\n", len(lines))
-	for _, line := range lines {
-		fmt.Println(line)
-	}
-	return 0, nil
+	u := parseLinesToUniverse(lines)
+
+	distances := findDistances(u, 1_000_000)
+
+	sum_distances := utils.MapReduceValues(distances, 0, func(a, b int) int {
+		return a + b
+	})
+
+	return sum_distances, nil
 }
