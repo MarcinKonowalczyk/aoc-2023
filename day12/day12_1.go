@@ -1,6 +1,7 @@
 package day12
 
 import (
+	"aoc2023/utils"
 	"fmt"
 	"strconv"
 	"strings"
@@ -27,6 +28,8 @@ func main_1(lines []string) (n int, err error) {
 	}
 	for _, parsed_line := range parsed_lines {
 		fmt.Println(parsed_line)
+		reduced_line := reduceBlocks(parsed_line)
+		fmt.Println(reduced_line)
 	}
 	return 0, nil
 }
@@ -76,8 +79,11 @@ func (l Line) String() string {
 		s += spring.String()
 	}
 	s += " "
-	for _, group := range l.groups {
+	for i, group := range l.groups {
 		s += fmt.Sprintf("%d", group)
+		if i < len(l.groups)-1 {
+			s += ","
+		}
 	}
 	return s
 }
@@ -105,4 +111,105 @@ func parseLine(line string) (Line, error) {
 		groups[i] = int_part
 	}
 	return Line{springs, groups}, nil
+}
+
+// Split the springs block into groups of springs at a given spring
+func splitSprings(springs []Spring, at Spring) [][]Spring {
+	blocks := make([][]Spring, 0)
+	block := make([]Spring, 0)
+	for _, spring := range springs {
+		if spring == at {
+			if len(block) > 0 {
+				// We've just finished a block
+				blocks = append(blocks, block)
+				block = make([]Spring, 0)
+			}
+		} else {
+			block = append(block, spring)
+		}
+	}
+	if len(block) > 0 {
+		blocks = append(blocks, block)
+	}
+	return blocks
+}
+
+// Remove
+func reduceBlocks(l Line) Line {
+	blocks := splitSprings(l.springs, OPERATIONAL)
+	knowns := make([]bool, len(blocks))
+	lengths := make([]int, len(blocks))
+
+	groups := l.groups
+
+	for i, block := range blocks {
+		lengths[i] = len(block)
+		knowns[i] = !utils.ArrayContains(block, UNKNOWN)
+	}
+
+	if len(knowns) != len(blocks) {
+		panic("invalid length")
+	}
+
+	// Going from left to right, reduce fully known blocks
+	n_to_reduce := 0
+	for i := range groups {
+		known := knowns[i]
+		if !known {
+			// We can't carry on redusing in this direction or we might get off sync
+			break
+		}
+		if groups[i] != lengths[i] {
+			panic("invalid group")
+		}
+		n_to_reduce++
+	}
+
+	if n_to_reduce > 0 {
+		blocks = blocks[n_to_reduce:]
+		knowns = knowns[n_to_reduce:]
+		lengths = lengths[n_to_reduce:]
+		groups = groups[n_to_reduce:]
+	}
+
+	// Going from right to left, reduce fully known blocks
+	n_to_reduce = 0
+	for i := range groups {
+		known := knowns[len(knowns)-1-i]
+		if !known {
+			// We can't carry on redusing in this direction or we might get off sync
+			break
+		}
+		if groups[len(groups)-1-i] != lengths[len(lengths)-1-i] {
+			panic("invalid group")
+		}
+		// We can reduce this block
+		n_to_reduce++
+	}
+
+	if n_to_reduce > 0 {
+		blocks = blocks[:len(blocks)-n_to_reduce]
+		knowns = knowns[:len(knowns)-n_to_reduce]
+		lengths = lengths[:len(lengths)-n_to_reduce]
+		groups = groups[:len(groups)-n_to_reduce]
+	}
+
+	// fmt.Println("blocks", blocks)
+	// fmt.Println("knowns", knowns)
+	// fmt.Println("lengths", lengths)
+	// fmt.Println("groups", groups)
+
+	// Join the blocks back together to form the new springs
+	new_springs := make([]Spring, 0)
+	for i, block := range blocks {
+		new_springs = append(new_springs, block...)
+		if i < len(blocks)-1 {
+			new_springs = append(new_springs, OPERATIONAL)
+		}
+	}
+
+	l.springs = new_springs
+	l.groups = groups
+
+	return l
 }
