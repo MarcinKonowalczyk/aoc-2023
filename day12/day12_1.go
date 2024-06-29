@@ -26,12 +26,17 @@ func main_1(lines []string) (n int, err error) {
 		}
 		parsed_lines[line_index] = parsed_line
 	}
+	sum_valid := 0
 	for _, parsed_line := range parsed_lines {
-		fmt.Println(parsed_line)
-		reduced_line := reduceBlocks(parsed_line)
-		fmt.Println(reduced_line)
+		// fmt.Println(parsed_line)
+		reduced_line, is_ok := reduceBlocks(parsed_line)
+		if !is_ok {
+			return -1, fmt.Errorf("invalid line: %s", parsed_line)
+		}
+		n_valid := recursiveTry(reduced_line, 0)
+		sum_valid += n_valid
 	}
-	return 0, nil
+	return sum_valid, nil
 }
 
 type Spring int
@@ -88,6 +93,14 @@ func (l Line) String() string {
 	return s
 }
 
+func springsString(ss []Spring) string {
+	s := ""
+	for _, spring := range ss {
+		s += spring.String()
+	}
+	return s
+}
+
 func parseLine(line string) (Line, error) {
 	parts := strings.Split(line, " ")
 	if len(parts) != 2 {
@@ -110,7 +123,11 @@ func parseLine(line string) (Line, error) {
 		}
 		groups[i] = int_part
 	}
-	return Line{springs, groups}, nil
+	l := Line{springs, groups}
+	if !checkLine(l) {
+		return l, fmt.Errorf("invalid line: %s", line)
+	}
+	return l, nil
 }
 
 // Split the springs block into groups of springs at a given spring
@@ -135,7 +152,7 @@ func splitSprings(springs []Spring, at Spring) [][]Spring {
 }
 
 // Remove
-func reduceBlocks(l Line) Line {
+func reduceBlocks(l Line) (Line, bool) {
 	blocks := splitSprings(l.springs, OPERATIONAL)
 	knowns := make([]bool, len(blocks))
 	lengths := make([]int, len(blocks))
@@ -148,19 +165,22 @@ func reduceBlocks(l Line) Line {
 	}
 
 	if len(knowns) != len(blocks) {
-		panic("invalid length")
+		panic("internal sanity check failed")
 	}
 
 	// Going from left to right, reduce fully known blocks
 	n_to_reduce := 0
 	for i := range groups {
+		if i >= len(knowns) {
+			break
+		}
 		known := knowns[i]
 		if !known {
 			// We can't carry on redusing in this direction or we might get off sync
 			break
 		}
 		if groups[i] != lengths[i] {
-			panic("invalid group")
+			return l, false
 		}
 		n_to_reduce++
 	}
@@ -175,13 +195,16 @@ func reduceBlocks(l Line) Line {
 	// Going from right to left, reduce fully known blocks
 	n_to_reduce = 0
 	for i := range groups {
+		if i >= len(knowns) {
+			break
+		}
 		known := knowns[len(knowns)-1-i]
 		if !known {
 			// We can't carry on redusing in this direction or we might get off sync
 			break
 		}
 		if groups[len(groups)-1-i] != lengths[len(lengths)-1-i] {
-			panic("invalid group")
+			return l, false
 		}
 		// We can reduce this block
 		n_to_reduce++
@@ -211,5 +234,61 @@ func reduceBlocks(l Line) Line {
 	l.springs = new_springs
 	l.groups = groups
 
-	return l
+	return l, true
+}
+
+func recursiveTry(l Line, depth int) (n_valid int) {
+	if !utils.ArrayContains(l.springs, UNKNOWN) {
+		// We dont have unknowns. We're done
+		return 1
+	}
+
+	// Put in a guess for the first unknown
+	for guess := OPERATIONAL; guess <= DAMAGED; guess++ {
+		line_copy := make([]Spring, len(l.springs))
+		copy(line_copy, l.springs)
+		test_line := Line{line_copy, l.groups}
+		for i, spring := range test_line.springs {
+			if spring == UNKNOWN {
+				test_line.springs[i] = guess
+				break
+			}
+		}
+		test_line, is_ok := reduceBlocks(test_line)
+		if !is_ok {
+			// We have an invalid line. Continue with the next guess
+			continue
+		}
+		is_valid := checkLine(test_line)
+		// fmt.Println(springsString(l.springs), "->", springsString(test_line.springs), "is valid:", is_valid)
+		if is_valid {
+			// We have a valid line
+			n_valid += recursiveTry(test_line, depth+1)
+		} else {
+			// We have an invalid line
+			continue
+		}
+	}
+	return
+}
+
+// Check whether a line is valid
+func checkLine(l Line) bool {
+	if utils.ArrayContains(l.springs, UNKNOWN) {
+		// We have unknown springs
+		// blocks := splitSprings(l.springs, OPERATIONAL)
+		return true
+	} else {
+		// We have no unknown springs. We can check if the line is valid
+		blocks := splitSprings(l.springs, OPERATIONAL)
+		if len(blocks) != len(l.groups) {
+			return false
+		}
+		for i, block := range blocks {
+			if len(block) != l.groups[i] {
+				return false
+			}
+		}
+		return true
+	}
 }
