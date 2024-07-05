@@ -26,17 +26,19 @@ func main_1(lines []string) (n int, err error) {
 		}
 		parsed_lines[line_index] = parsed_line
 	}
-	sum_valid := 0
-	for _, parsed_line := range parsed_lines {
-		// fmt.Println(parsed_line)
-		reduced_line, is_ok := reduceBlocks(parsed_line)
-		if !is_ok {
-			return -1, fmt.Errorf("invalid line: %s", parsed_line)
-		}
-		n_valid := recursiveTry(reduced_line, 0)
-		sum_valid += n_valid
-	}
-	return sum_valid, nil
+	fmt.Println(parsed_lines[len(parsed_lines)-1])
+	c := recursiveStepFromLeft(parsed_lines[len(parsed_lines)-1], 0)
+	fmt.Println(c)
+
+	// ----
+	sum_counts := 0
+	// for _, parsed_line := range parsed_lines {
+	// 	c := recursiveStepFromLeft(parsed_line, 0)
+	// 	// fmt.Println(parsed_line)
+	// 	// fmt.Println(c)
+	// 	sum_counts += c
+	// }
+	return sum_counts, nil
 }
 
 type Spring int
@@ -74,16 +76,22 @@ func fromString(s string) (Spring, error) {
 }
 
 type Line struct {
-	springs []Spring
-	groups  []int
+	orignal_springs string     // original springs string
+	blocks          [][]Spring // blocks of springs split at OPERATIONAL
+	groups          []int      // grounps of consecutive DAMAGED springs
 }
 
 func (l Line) String() string {
 	s := ""
-	for _, spring := range l.springs {
-		s += spring.String()
+	// s += l.orignal_springs + " ["
+	s += "["
+	for i, block := range l.blocks {
+		s += springsString(block)
+		if i < len(l.blocks)-1 {
+			s += ","
+		}
 	}
-	s += " "
+	s += "] "
 	for i, group := range l.groups {
 		s += fmt.Sprintf("%d", group)
 		if i < len(l.groups)-1 {
@@ -91,6 +99,19 @@ func (l Line) String() string {
 		}
 	}
 	return s
+}
+
+func (l Line) copy() Line {
+	copy_blocks := make([][]Spring, len(l.blocks))
+	for i, block := range l.blocks {
+		copy_block := make([]Spring, len(block))
+		copy(copy_block, block)
+		copy_blocks[i] = copy_block
+	}
+	copy_groups := make([]int, len(l.groups))
+	copy(copy_groups, l.groups)
+	copy_orignal_springs := l.orignal_springs
+	return Line{copy_orignal_springs, copy_blocks, copy_groups}
 }
 
 func springsString(ss []Spring) string {
@@ -106,8 +127,9 @@ func parseLine(line string) (Line, error) {
 	if len(parts) != 2 {
 		return Line{}, fmt.Errorf("invalid line: %s", line)
 	}
-	springs := make([]Spring, len(parts[0]))
-	for i, c := range parts[0] {
+	springs_string := parts[0]
+	springs := make([]Spring, len(springs_string))
+	for i, c := range springs_string {
 		spring, err := fromString(string(c))
 		if err != nil {
 			return Line{}, fmt.Errorf("invalid spring: %s", string(c))
@@ -123,10 +145,9 @@ func parseLine(line string) (Line, error) {
 		}
 		groups[i] = int_part
 	}
-	l := Line{springs, groups}
-	if !checkLine(l) {
-		return l, fmt.Errorf("invalid line: %s", line)
-	}
+
+	blocks := splitSprings(springs, OPERATIONAL)
+	l := Line{springs_string, blocks, groups}
 	return l, nil
 }
 
@@ -151,144 +172,118 @@ func splitSprings(springs []Spring, at Spring) [][]Spring {
 	return blocks
 }
 
-// Remove
-func reduceBlocks(l Line) (Line, bool) {
-	blocks := splitSprings(l.springs, OPERATIONAL)
-	knowns := make([]bool, len(blocks))
-	lengths := make([]int, len(blocks))
+func stepFromLeft(l Line) (ll []Line, g []Spring, end bool) {
 
-	groups := l.groups
-
-	for i, block := range blocks {
-		lengths[i] = len(block)
-		knowns[i] = !utils.ArrayContains(block, UNKNOWN)
+	if len(l.blocks) == 0 {
+		// No more blocks, so we should have no more groups
+		if len(l.groups) == 0 {
+			end = true
+			return
+		}
+		return
 	}
 
-	if len(knowns) != len(blocks) {
-		panic("internal sanity check failed")
-	}
-
-	// Going from left to right, reduce fully known blocks
-	n_to_reduce := 0
-	for i := range groups {
-		if i >= len(knowns) {
-			break
-		}
-		known := knowns[i]
-		if !known {
-			// We can't carry on redusing in this direction or we might get off sync
-			break
-		}
-		if groups[i] != lengths[i] {
-			return l, false
-		}
-		n_to_reduce++
-	}
-
-	if n_to_reduce > 0 {
-		blocks = blocks[n_to_reduce:]
-		knowns = knowns[n_to_reduce:]
-		lengths = lengths[n_to_reduce:]
-		groups = groups[n_to_reduce:]
-	}
-
-	// Going from right to left, reduce fully known blocks
-	n_to_reduce = 0
-	for i := range groups {
-		if i >= len(knowns) {
-			break
-		}
-		known := knowns[len(knowns)-1-i]
-		if !known {
-			// We can't carry on redusing in this direction or we might get off sync
-			break
-		}
-		if groups[len(groups)-1-i] != lengths[len(lengths)-1-i] {
-			return l, false
-		}
-		// We can reduce this block
-		n_to_reduce++
-	}
-
-	if n_to_reduce > 0 {
-		blocks = blocks[:len(blocks)-n_to_reduce]
-		knowns = knowns[:len(knowns)-n_to_reduce]
-		lengths = lengths[:len(lengths)-n_to_reduce]
-		groups = groups[:len(groups)-n_to_reduce]
-	}
-
-	// fmt.Println("blocks", blocks)
-	// fmt.Println("knowns", knowns)
-	// fmt.Println("lengths", lengths)
-	// fmt.Println("groups", groups)
-
-	// Join the blocks back together to form the new springs
-	new_springs := make([]Spring, 0)
-	for i, block := range blocks {
-		new_springs = append(new_springs, block...)
-		if i < len(blocks)-1 {
-			new_springs = append(new_springs, OPERATIONAL)
+	if len(l.groups) == 0 {
+		lc2 := l.copy()
+		if lc2.blocks[0][0] == DAMAGED {
+			// First block is DAMAGED, so we can't do anything
+			return
+		} else if lc2.blocks[0][0] == UNKNOWN {
+			lc2.blocks[0] = lc2.blocks[0][1:]
+			if len(lc2.blocks[0]) == 0 {
+				lc2.blocks = lc2.blocks[1:]
+			}
+			ll = append(ll, lc2)
+			g = append(g, OPERATIONAL)
+			return
 		}
 	}
 
-	l.springs = new_springs
-	l.groups = groups
-
-	return l, true
-}
-
-func recursiveTry(l Line, depth int) (n_valid int) {
-	if !utils.ArrayContains(l.springs, UNKNOWN) {
-		// We dont have unknowns. We're done
-		return 1
+	if len(l.blocks[0]) == 0 {
+		panic("len(l.blocks[[0]]) == 0")
 	}
 
-	// Put in a guess for the first unknown
-	for guess := OPERATIONAL; guess <= DAMAGED; guess++ {
-		line_copy := make([]Spring, len(l.springs))
-		copy(line_copy, l.springs)
-		test_line := Line{line_copy, l.groups}
-		for i, spring := range test_line.springs {
-			if spring == UNKNOWN {
-				test_line.springs[i] = guess
-				break
+	lc1 := l.copy()
+
+	// This is for both DAMAGED and UNKNOWN first block
+	ok := true
+	_continue := true
+	for ok && _continue {
+		if lc1.groups[0] > 1 {
+			// First group is more than 1, so we can decrease it
+			lc1.groups[0] -= 1
+			lc1.blocks[0] = lc1.blocks[0][1:]
+		} else {
+			// First group is 1. This should be the end if this group
+			lc1.groups = lc1.groups[1:]
+			if len(lc1.blocks[0]) == 1 {
+				// This is the last bit of this block.
+				// If the spring is DAMAGED, thats ok. If its UNKNOWN thats also ok
+				lc1.blocks[0] = lc1.blocks[0][1:]
+			} else {
+				// This is not the last bit of this block
+				next_spring := lc1.blocks[0][1]
+				// Next spring be UNKNOWN
+				if next_spring == UNKNOWN {
+					lc1.blocks[0] = lc1.blocks[0][2:]
+				} else {
+					ok = false
+				}
+			}
+			_continue = false
+			// if len(lc1.groups) == 0 && len(lc1.blocks) > 0 {
+			// 	// This was the last group, but there are still blocks left
+			// 	ok = false
+			// }
+		}
+		if len(lc1.blocks[0]) == 0 {
+			lc1.blocks = lc1.blocks[1:]
+			if len(lc1.blocks) == 0 {
+				_continue = false
 			}
 		}
-		test_line, is_ok := reduceBlocks(test_line)
-		if !is_ok {
-			// We have an invalid line. Continue with the next guess
-			continue
-		}
-		is_valid := checkLine(test_line)
-		// fmt.Println(springsString(l.springs), "->", springsString(test_line.springs), "is valid:", is_valid)
-		if is_valid {
-			// We have a valid line
-			n_valid += recursiveTry(test_line, depth+1)
-		} else {
-			// We have an invalid line
-			continue
-		}
 	}
+	if ok {
+		ll = append(ll, lc1)
+		g = append(g, DAMAGED)
+	}
+
+	// If the first block is UNKNOWN, we can also try to make it OPERATIONAL
+	if l.blocks[0][0] == UNKNOWN {
+		lc2 := l.copy()
+		if len(lc2.blocks[0]) > 1 {
+			lc2.blocks[0] = l.blocks[0][1:]
+		} else {
+			lc2.blocks = lc2.blocks[1:]
+		}
+		ll = append(ll, lc2)
+		g = append(g, OPERATIONAL)
+	} else if l.blocks[0][0] != DAMAGED {
+		panic(fmt.Sprintf("invalid block_0: %s", l.blocks[0][0]))
+	}
+
 	return
 }
 
-// Check whether a line is valid
-func checkLine(l Line) bool {
-	if utils.ArrayContains(l.springs, UNKNOWN) {
-		// We have unknown springs
-		// blocks := splitSprings(l.springs, OPERATIONAL)
-		return true
-	} else {
-		// We have no unknown springs. We can check if the line is valid
-		blocks := splitSprings(l.springs, OPERATIONAL)
-		if len(blocks) != len(l.groups) {
-			return false
-		}
-		for i, block := range blocks {
-			if len(block) != l.groups[i] {
-				return false
-			}
-		}
-		return true
+func recursiveStepFromLeft(l Line, depth int) (c int) {
+	ll, g, end := stepFromLeft(l)
+	pad_space := strings.Repeat(" ", depth+1)
+	pad_underscore := strings.Repeat("_", depth+1)
+	if end {
+		fmt.Println(pad_space + utils.Csprintf(utils.Green, "END"))
+		return 1
+	} else if len(ll) == 0 {
+		fmt.Println(pad_space + utils.Csprintf(utils.Yellow, "No"))
 	}
+	if end {
+		return 1
+	}
+	for i, line := range ll {
+		fmt.Println(pad_space + " " + g[i].String() + " " + line.String())
+	}
+	for i, line := range ll {
+		fmt.Println(pad_underscore + " " + g[i].String() + " " + line.String())
+		c += recursiveStepFromLeft(line, depth+1)
+	}
+	return
 }

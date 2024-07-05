@@ -113,6 +113,11 @@ func main() {
 	// 	println(line)
 	// }
 
+	// If the last line is empty, remove it
+	if len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
+		lines = lines[:len(lines)-1]
+	}
+
 	var value int
 	switch day {
 	case 1:
