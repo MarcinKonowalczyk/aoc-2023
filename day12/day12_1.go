@@ -26,12 +26,19 @@ func main_1(lines []string) (n int, err error) {
 		}
 		parsed_lines[line_index] = parsed_line
 	}
-	fmt.Println(parsed_lines[len(parsed_lines)-1])
-	c := recursiveStepFromLeft(parsed_lines[len(parsed_lines)-1], 0)
-	fmt.Println(c)
 
-	// ----
 	sum_counts := 0
+	for _, parsed_line := range parsed_lines {
+		c := recursiveBruteForce(parsed_line, 0)
+		fmt.Println(parsed_line, "->", c)
+		sum_counts += c
+	}
+
+	// fmt.Println(parsed_lines[len(parsed_lines)-1])
+	// c := recursiveStepFromLeft(parsed_lines[len(parsed_lines)-1], 0)
+	// fmt.Println(c)
+
+	// // ----
 	// for _, parsed_line := range parsed_lines {
 	// 	c := recursiveStepFromLeft(parsed_line, 0)
 	// 	// fmt.Println(parsed_line)
