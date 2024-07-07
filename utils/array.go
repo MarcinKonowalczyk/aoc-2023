@@ -247,3 +247,13 @@ func ArrayReverse[T any](arr []T) []T {
 	}
 	return reversed
 }
+
+func ArrayDeleteIndices[T any](arr []T, indices []int) []T {
+	deleted := make([]T, 0)
+	for i, n := range arr {
+		if !ArrayContains(indices, i) {
+			deleted = append(deleted, n)
+		}
+	}
+	return deleted
+}

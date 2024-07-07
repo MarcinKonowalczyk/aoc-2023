@@ -26,6 +26,13 @@ func AssertEqual[T comparable](t *testing.T, a T, b T) {
 	}
 }
 
+func AssertNotEqual[T comparable](t *testing.T, a T, b T) {
+	if a == b {
+		file, line := getParentInfo()
+		t.Errorf("Expected %v != %v in %s:%d", a, b, file, line)
+	}
+}
+
 func AssertNoError(t *testing.T, err error) {
 	if err != nil {
 		file, line := getParentInfo()
