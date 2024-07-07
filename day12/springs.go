@@ -39,14 +39,12 @@ func fromString(s string) (Spring, error) {
 }
 
 type Line struct {
-	orignal_springs string     // original springs string
-	blocks          [][]Spring // blocks of springs split at OPERATIONAL
-	groups          []int      // grounps of consecutive DAMAGED springs
+	blocks [][]Spring // blocks of springs split at OPERATIONAL
+	groups []int      // grounps of consecutive DAMAGED springs
 }
 
 func (l Line) String() string {
 	s := ""
-	// s += l.orignal_springs + " ["
 	s += "["
 	for i, block := range l.blocks {
 		s += springsString(block)
@@ -73,8 +71,7 @@ func (l Line) copy() Line {
 	}
 	copy_groups := make([]int, len(l.groups))
 	copy(copy_groups, l.groups)
-	copy_orignal_springs := l.orignal_springs
-	return Line{copy_orignal_springs, copy_blocks, copy_groups}
+	return Line{copy_blocks, copy_groups}
 }
 
 func springsString(ss []Spring) string {

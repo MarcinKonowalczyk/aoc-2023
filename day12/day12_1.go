@@ -65,7 +65,7 @@ func parseInputLine(line string) (Line, error) {
 		return Line{}, err
 	}
 	blocks := splitSprings(springs, OPERATIONAL)
-	l := Line{springs_string, blocks, groups}
+	l := Line{blocks, groups}
 	return l, nil
 }
 
@@ -115,7 +115,7 @@ func splitSprings(springs []Spring, at Spring) [][]Spring {
 	return blocks
 }
 
-func stepFromLeft(l Line) (ll []Line, g []Spring, end bool) {
+func stepFromLeft(l Line) (ll []Line, end bool) {
 
 	if len(l.blocks) == 0 {
 		// No more blocks, so we should have no more groups
@@ -137,7 +137,6 @@ func stepFromLeft(l Line) (ll []Line, g []Spring, end bool) {
 				lc2.blocks = lc2.blocks[1:]
 			}
 			ll = append(ll, lc2)
-			g = append(g, OPERATIONAL)
 			return
 		}
 	}
@@ -228,7 +227,6 @@ func stepFromLeft(l Line) (ll []Line, g []Spring, end bool) {
 	}
 	if ok {
 		ll = append(ll, lc1)
-		g = append(g, DAMAGED)
 	}
 
 	// If the first block is UNKNOWN, we can also try to make it OPERATIONAL
@@ -240,7 +238,6 @@ func stepFromLeft(l Line) (ll []Line, g []Spring, end bool) {
 			lc2.blocks = lc2.blocks[1:]
 		}
 		ll = append(ll, lc2)
-		g = append(g, OPERATIONAL)
 	} else if l.blocks[0][0] != DAMAGED {
 		panic(fmt.Sprintf("invalid block_0: %s", l.blocks[0][0]))
 	}
@@ -249,8 +246,7 @@ func stepFromLeft(l Line) (ll []Line, g []Spring, end bool) {
 }
 
 func recursiveStepFromLeft(l Line, depth int) (c int) {
-	// ll, g, end := stepFromLeft(l)
-	ll, _, end := stepFromLeft(l)
+	ll, end := stepFromLeft(l)
 	// pad_space := strings.Repeat(" ", depth+1)
 	// pad_underscore := strings.Repeat("_", depth+1)
 	if end {

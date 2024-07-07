@@ -1,20 +1,15 @@
 package day12
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func main_2(lines []string) (n int, err error) {
-	parsed_lines := make([]Line, len(lines))
-	for line_index, line := range lines {
-		parsed_line, err := parseInputLine(line)
-		if err != nil {
-			return -1, err
-		}
-		parsed_lines[line_index] = parsed_line
-	}
 
-	unfolded_lines := make([]Line, len(parsed_lines))
-	for line_index, parsed_line := range parsed_lines {
-		new_line, err := unfoldLine(parsed_line, 5)
+	unfolded_lines := make([]string, len(lines))
+	for line_index, line := range lines {
+		new_line, err := unfoldLine(line, 5)
 		if err != nil {
 			return -1, err
 		}
@@ -22,11 +17,20 @@ func main_2(lines []string) (n int, err error) {
 		// fmt.Println(unfolded_lines[line_index])
 	}
 
+	parsed_lines := make([]Line, len(lines))
+	for line_index, line := range unfolded_lines {
+		parsed_line, err := parseInputLine(line)
+		if err != nil {
+			return -1, err
+		}
+		parsed_lines[line_index] = parsed_line
+	}
+
 	sum_counts := 0
 
-	for _, unfolded_line := range unfolded_lines {
-		c := recursiveStepFromLeft(unfolded_line, 0)
-		fmt.Println(unfolded_line, "->", c)
+	for _, parsed_line := range parsed_lines {
+		c := recursiveStepFromLeft(parsed_line, 0)
+		fmt.Println(parsed_line, "->", c)
 		sum_counts += c
 	}
 
@@ -34,32 +38,27 @@ func main_2(lines []string) (n int, err error) {
 
 }
 
-func unfoldLine(l Line, times int) (Line, error) {
+func unfoldLine(line string, times int) (string, error) {
+	parts := strings.Split(line, " ")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid line")
+	}
+	springs_string := parts[0]
+	groups_string := parts[1]
+
 	unfolded := ""
 	for i := 0; i < times; i++ {
-		unfolded += l.orignal_springs
+		unfolded += springs_string
 		if i < times-1 {
 			unfolded += "?"
 		}
 	}
-	new_groups_string := ""
+	unfolded += " "
 	for i := 0; i < times; i++ {
-		for _, group := range l.groups {
-			new_groups_string += fmt.Sprintf("%d,", group)
+		unfolded += groups_string
+		if i < times-1 {
+			unfolded += ","
 		}
 	}
-	new_groups_string = new_groups_string[:len(new_groups_string)-1]
-	new_groups, err := parseGroups(new_groups_string)
-	if err != nil {
-		return Line{}, err
-	}
-	new_springs, err := parseSprings(unfolded)
-	if err != nil {
-		return Line{}, err
-	}
-	return Line{
-		l.orignal_springs,
-		splitSprings(new_springs, OPERATIONAL),
-		new_groups,
-	}, nil
+	return unfolded, nil
 }
