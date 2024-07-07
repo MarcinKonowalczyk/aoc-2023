@@ -5,7 +5,7 @@ import "fmt"
 func main_2(lines []string) (n int, err error) {
 	parsed_lines := make([]Line, len(lines))
 	for line_index, line := range lines {
-		parsed_line, err := parseLine(line)
+		parsed_line, err := parseInputLine(line)
 		if err != nil {
 			return -1, err
 		}
@@ -19,10 +19,18 @@ func main_2(lines []string) (n int, err error) {
 			return -1, err
 		}
 		unfolded_lines[line_index] = new_line
-		fmt.Println(unfolded_lines[line_index])
+		// fmt.Println(unfolded_lines[line_index])
 	}
 
-	return -1, nil
+	sum_counts := 0
+
+	for _, unfolded_line := range unfolded_lines {
+		c := recursiveStepFromLeft(unfolded_line, 0)
+		fmt.Println(unfolded_line, "->", c)
+		sum_counts += c
+	}
+
+	return sum_counts, nil
 
 }
 
@@ -41,10 +49,17 @@ func unfoldLine(l Line, times int) (Line, error) {
 		}
 	}
 	new_groups_string = new_groups_string[:len(new_groups_string)-1]
-	new_l, err := parseLine(unfolded + " " + new_groups_string)
+	new_groups, err := parseGroups(new_groups_string)
 	if err != nil {
 		return Line{}, err
 	}
-	new_l.orignal_springs = l.orignal_springs
-	return new_l, nil
+	new_springs, err := parseSprings(unfolded)
+	if err != nil {
+		return Line{}, err
+	}
+	return Line{
+		l.orignal_springs,
+		splitSprings(new_springs, OPERATIONAL),
+		new_groups,
+	}, nil
 }
