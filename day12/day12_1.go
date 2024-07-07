@@ -2,6 +2,7 @@ package day12
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -17,6 +18,7 @@ func Main(part int, lines []string) (n int, err error) {
 }
 
 func main_1(lines []string) (n int, err error) {
+	initCache()
 	parsed_lines := make([]Line, len(lines))
 	for line_index, line := range lines {
 		parsed_line, err := parseInputLine(line)
@@ -26,7 +28,7 @@ func main_1(lines []string) (n int, err error) {
 		parsed_lines[line_index] = parsed_line
 	}
 
-	sum_counts := 0
+	sum_counts := uint64(0)
 	// for _, parsed_line := range parsed_lines {
 	// 	c := recursiveBruteForce(parsed_line, 0)
 	// 	fmt.Println(parsed_line, "->", c)
@@ -46,7 +48,7 @@ func main_1(lines []string) (n int, err error) {
 	// c2 := recursiveBruteForce(parsed_lines[len(parsed_lines)-1], 0)
 	// fmt.Println(c2)
 
-	return sum_counts, nil
+	return int(sum_counts), nil
 }
 
 func parseInputLine(line string) (Line, error) {
@@ -55,7 +57,7 @@ func parseInputLine(line string) (Line, error) {
 		return Line{}, fmt.Errorf("invalid line: %s", line)
 	}
 	springs_string := parts[0]
-	springs, err := parseSprings(springs_string)
+	springs, err := SpringsFromString(springs_string)
 	if err != nil {
 		return Line{}, err
 	}
@@ -69,29 +71,20 @@ func parseInputLine(line string) (Line, error) {
 	return l, nil
 }
 
-func parseSprings(springs_string string) ([]Spring, error) {
-	springs := make([]Spring, len(springs_string))
-	for i, c := range springs_string {
-		spring, err := fromString(string(c))
-		if err != nil {
-			return nil, fmt.Errorf("invalid spring: %s", string(c))
-		}
-		springs[i] = spring
-	}
-	return springs, nil
-}
-
-func parseGroups(groups_string string) ([]int, error) {
+func parseGroups(groups_string string) ([]uint8, error) {
 	groups := strings.Split(groups_string, ",")
-	groups_int := make([]int, len(groups))
+	groups_u8 := make([]uint8, len(groups))
 	for i, group := range groups {
 		group_int, err := strconv.Atoi(group)
 		if err != nil {
 			return nil, fmt.Errorf("invalid group: %s", group)
 		}
-		groups_int[i] = group_int
+		if group_int < 0 || group_int > 255 {
+			return nil, fmt.Errorf("invalid group: %s", group)
+		}
+		groups_u8[i] = uint8(group_int)
 	}
-	return groups_int, nil
+	return groups_u8, nil
 }
 
 // Split the springs block into groups of springs at a given spring
@@ -245,28 +238,51 @@ func stepFromLeft(l Line) (ll []Line, end bool) {
 	return
 }
 
-func recursiveStepFromLeft(l Line, depth int) (c int) {
+var cache map[uint64]uint64
+
+func initCache() {
+	cache = make(map[uint64]uint64)
+}
+
+func recursiveStepFromLeft(l Line, depth int) (c uint64) {
+	hash := l.Hash()
+	// fmt.Printf("%s -> %d\n", l, hash)
+
+	// Check if we've already calculated this
+	c, gotit := cache[hash]
+	if gotit {
+		// Randomly decide to recompute
+		if rand.Intn(100) > 10 {
+			return c
+		} else {
+			c = 0
+		}
+	}
+
 	ll, end := stepFromLeft(l)
-	// pad_space := strings.Repeat(" ", depth+1)
-	// pad_underscore := strings.Repeat("_", depth+1)
+
 	if end {
-		// fmt.Println(pad_space + utils.Csprintf(utils.Green, "END"))
-		return 1
-	} else if len(ll) == 0 {
-		// fmt.Println(pad_space + utils.Csprintf(utils.Yellow, "No"))
-	}
-	if end {
+		// cache[hash] = 1
 		return 1
 	}
-	// for i, line := range ll {
-	// 	fmt.Println(pad_space + " " + g[i].String() + " " + line.String())
-	// }
+
 	for _, line := range ll {
 		c += recursiveStepFromLeft(line, depth+1)
 	}
-	// for i, line := range ll {
-	// 	fmt.Println(pad_underscore + " " + g[i].String() + " " + line.String())
-	// 	c += recursiveStepFromLeft(line, depth+1)
-	// }
-	return
+
+	c_stored, gotit := cache[hash]
+	if gotit {
+		if c != c_stored {
+			panic(fmt.Sprintf("c != c_stored: %d != %d", c, c_stored))
+		} else {
+			// fmt.Printf("Got it: %d\n", c)
+		}
+	} else {
+		cache[hash] = c
+	}
+
+	// // Store the result
+	// cache[hash] = c
+
+	return c
 }

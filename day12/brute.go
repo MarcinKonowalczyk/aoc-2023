@@ -65,7 +65,7 @@ func checkLine(l Line) bool {
 			return false
 		}
 		for i, block := range l.blocks {
-			if len(block) != l.groups[i] {
+			if uint8(len(block)) != l.groups[i] {
 				return false
 			}
 		}

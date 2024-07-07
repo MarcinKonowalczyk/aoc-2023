@@ -6,7 +6,7 @@ import (
 )
 
 func main_2(lines []string) (n int, err error) {
-
+	initCache()
 	unfolded_lines := make([]string, len(lines))
 	for line_index, line := range lines {
 		new_line, err := unfoldLine(line, 5)
@@ -14,7 +14,6 @@ func main_2(lines []string) (n int, err error) {
 			return -1, err
 		}
 		unfolded_lines[line_index] = new_line
-		// fmt.Println(unfolded_lines[line_index])
 	}
 
 	parsed_lines := make([]Line, len(lines))
@@ -26,7 +25,7 @@ func main_2(lines []string) (n int, err error) {
 		parsed_lines[line_index] = parsed_line
 	}
 
-	sum_counts := 0
+	sum_counts := uint64(0)
 
 	for _, parsed_line := range parsed_lines {
 		c := recursiveStepFromLeft(parsed_line, 0)
@@ -34,8 +33,7 @@ func main_2(lines []string) (n int, err error) {
 		sum_counts += c
 	}
 
-	return sum_counts, nil
-
+	return int(sum_counts), nil
 }
 
 func unfoldLine(line string, times int) (string, error) {
