@@ -2,7 +2,6 @@ package day12
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -246,17 +245,11 @@ func initCache() {
 
 func recursiveStepFromLeft(l Line, depth int) (c uint64) {
 	hash := l.Hash()
-	// fmt.Printf("%s -> %d\n", l, hash)
 
 	// Check if we've already calculated this
 	c, gotit := cache[hash]
 	if gotit {
-		// Randomly decide to recompute
-		if rand.Intn(100) > 10 {
-			return c
-		} else {
-			c = 0
-		}
+		return c
 	}
 
 	ll, end := stepFromLeft(l)
@@ -270,19 +263,8 @@ func recursiveStepFromLeft(l Line, depth int) (c uint64) {
 		c += recursiveStepFromLeft(line, depth+1)
 	}
 
-	c_stored, gotit := cache[hash]
-	if gotit {
-		if c != c_stored {
-			panic(fmt.Sprintf("c != c_stored: %d != %d", c, c_stored))
-		} else {
-			// fmt.Printf("Got it: %d\n", c)
-		}
-	} else {
-		cache[hash] = c
-	}
-
-	// // Store the result
-	// cache[hash] = c
+	// Store the result
+	cache[hash] = c
 
 	return c
 }

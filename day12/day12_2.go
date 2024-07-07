@@ -29,7 +29,7 @@ func main_2(lines []string) (n int, err error) {
 
 	for _, parsed_line := range parsed_lines {
 		c := recursiveStepFromLeft(parsed_line, 0)
-		fmt.Println(parsed_line, "->", c)
+		// fmt.Println(parsed_line, "->", c)
 		sum_counts += c
 	}
 
