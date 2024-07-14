@@ -171,31 +171,44 @@ func hFold(m Map, i int) (Map, error) {
 	return folded.transpose(), nil
 }
 
-func tryAllFolds(m Map) (vfold, hfold int, err error) {
-	v_fold := -1
+func tryVerticalFolds(m Map) (int, error) {
 	for j := 0; j < m.nCols()-1; j++ {
 		folded, err := vFold(m, j)
 		if err != nil {
-			return -1, -1, err
+			return -1, err
 		}
 		if folded.allTrue() {
-			v_fold = j
-			break
+			return j, nil
 		}
 	}
-	if v_fold >= 0 {
-		return v_fold, -1, nil
-	}
-	h_fold := -1
+	return -1, nil
+}
+
+func tryHorizontalFold(m Map) (int, error) {
 	for j := 0; j < m.nRows()-1; j++ {
 		folded, err := hFold(m, j)
 		if err != nil {
-			return -1, -1, err
+			return -1, err
 		}
 		if folded.allTrue() {
-			h_fold = j
-			break
+			return j, nil
 		}
+	}
+	return -1, nil
+}
+
+func tryAllFolds(m Map) (vfold, hfold int, err error) {
+	v_fold, err := tryVerticalFolds(m)
+	if err != nil {
+		return -1, -1, err
+	}
+	if v_fold >= 0 {
+		// Found a vertical fold
+		return v_fold, -1, nil
+	}
+	h_fold, err := tryHorizontalFold(m)
+	if err != nil {
+		return -1, -1, err
 	}
 	if h_fold >= 0 {
 		return -1, h_fold, nil
