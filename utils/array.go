@@ -206,6 +206,12 @@ func ArrayContainsFunc[T any](arr []T, test func(T) bool) bool {
 	return ArrayIndexOfFunc(arr, test) != -1
 }
 
+func ArrayRemoveIndex[T any](arr []T, index int) []T {
+	before := arr[:index]
+	after := arr[index+1:]
+	return append(before, after...)
+}
+
 // Interface for numeric types
 type Numeric interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64 | ~complex64 | ~complex128

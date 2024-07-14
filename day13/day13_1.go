@@ -23,23 +23,34 @@ func main_1(lines []string) (n int, err error) {
 	summary := 0
 
 	for i, m := range maps {
-		vfold, hfold, err := tryAllFolds(m)
+		vfolds, hfolds, err := tryAllFolds(m)
 		if err != nil {
 			return -1, err
 		}
 
-		if vfold == -1 && hfold == -1 {
+		has_vfolds := len(vfolds) > 0
+		has_hfolds := len(hfolds) > 0
+
+		if !has_vfolds && !has_hfolds {
 			return -1, fmt.Errorf("no fold found for map %d", i)
-		} else if vfold >= 0 && hfold >= 0 {
+		} else if has_vfolds && has_hfolds {
 			return -1, fmt.Errorf("both vertical and horizontal folds found for map %d", i)
 		}
 
-		if vfold >= 0 {
+		if has_vfolds {
+			if len(vfolds) != 1 {
+				return -1, fmt.Errorf("multiple vertical folds found for map %d", i)
+			}
+			vfold := vfolds[0]
 			// fmt.Println("Vertical fold found for map", i+1, "between columns", vfold+1, "and", vfold+2)
 			summary += vfold + 1
 		}
 
-		if hfold >= 0 {
+		if has_hfolds {
+			if len(hfolds) != 1 {
+				return -1, fmt.Errorf("multiple horizontal folds found for map %d", i)
+			}
+			hfold := hfolds[0]
 			// fmt.Println("Horizontal fold found for map", i+1, "between rows", hfold+1, "and", hfold+2)
 			summary += 100 * (hfold + 1)
 		}
@@ -171,47 +182,42 @@ func hFold(m Map, i int) (Map, error) {
 	return folded.transpose(), nil
 }
 
-func tryVerticalFolds(m Map) (int, error) {
+func tryVerticalFolds(m Map) ([]int, error) {
+	folds := make([]int, 0)
 	for j := 0; j < m.nCols()-1; j++ {
 		folded, err := vFold(m, j)
 		if err != nil {
-			return -1, err
+			return []int{}, err
 		}
 		if folded.allTrue() {
-			return j, nil
+			folds = append(folds, j)
 		}
 	}
-	return -1, nil
+	return folds, nil
 }
 
-func tryHorizontalFold(m Map) (int, error) {
+func tryHorizontalFolds(m Map) ([]int, error) {
+	folds := make([]int, 0)
 	for j := 0; j < m.nRows()-1; j++ {
 		folded, err := hFold(m, j)
 		if err != nil {
-			return -1, err
+			return []int{}, err
 		}
 		if folded.allTrue() {
-			return j, nil
+			folds = append(folds, j)
 		}
 	}
-	return -1, nil
+	return folds, nil
 }
 
-func tryAllFolds(m Map) (vfold, hfold int, err error) {
-	v_fold, err := tryVerticalFolds(m)
+func tryAllFolds(m Map) (vfold, hfold []int, err error) {
+	v_folds, err := tryVerticalFolds(m)
 	if err != nil {
-		return -1, -1, err
+		return []int{}, []int{}, err
 	}
-	if v_fold >= 0 {
-		// Found a vertical fold
-		return v_fold, -1, nil
-	}
-	h_fold, err := tryHorizontalFold(m)
+	h_folds, err := tryHorizontalFolds(m)
 	if err != nil {
-		return -1, -1, err
+		return []int{}, []int{}, err
 	}
-	if h_fold >= 0 {
-		return -1, h_fold, nil
-	}
-	return -1, -1, nil
+	return v_folds, h_folds, nil
 }
