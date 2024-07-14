@@ -163,9 +163,47 @@ func ArrayIndexOf[T comparable](arr []T, elem T) int {
 	return -1
 }
 
+// Find an element in an array using a test. Return the index of the element if
+// found, or -1 if not found.
+func ArrayIndexOfFunc[T any](arr []T, test func(T) bool) int {
+	for i, n := range arr {
+		if test(n) {
+			return i
+		}
+	}
+	return -1
+}
+
+// Return the indices of elements in an array that match a value.
+func ArrayIndicesOf[T comparable](arr []T, elem T) []int {
+	indices := make([]int, 0)
+	for i, n := range arr {
+		if n == elem {
+			indices = append(indices, i)
+		}
+	}
+	return indices
+}
+
+// Return the indices of elements in an array that pass a test.
+func ArrayIndicesOfFunc[T any](arr []T, test func(T) bool) []int {
+	indices := make([]int, 0)
+	for i, n := range arr {
+		if test(n) {
+			indices = append(indices, i)
+		}
+	}
+	return indices
+}
+
 // Convenience function to check if an element is in an array.
 func ArrayContains[T comparable](arr []T, elem T) bool {
 	return ArrayIndexOf(arr, elem) != -1
+}
+
+// Convenience function to check if an element is in an array using a test.
+func ArrayContainsFunc[T any](arr []T, test func(T) bool) bool {
+	return ArrayIndexOfFunc(arr, test) != -1
 }
 
 // Interface for numeric types
