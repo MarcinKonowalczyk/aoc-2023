@@ -14,8 +14,8 @@ func Main(part int, lines []string) (n int, err error) {
 
 func main_1(lines []string) (n int, err error) {
 	grid := parseLines(lines)
-	slideNorth(&grid)
-	weight := calcNorthWeight(&grid)
+	slideNorth(grid)
+	weight := calcNorthWeight(grid)
 	return weight, nil
 }
 
@@ -39,85 +39,77 @@ func (r Rock) String() string {
 	return "?"
 }
 
-type Grid [][]Rock
+type Grid struct {
+	rocks *[][]Rock
+	rows  int
+	cols  int
+}
 
 func (g Grid) String() string {
 	s := ""
-	for i, row := range g {
+	for i, row := range *g.rocks {
 		for _, rock := range row {
 			s += rock.String()
 		}
-		if i < len(g)-1 {
+		if i < len(*g.rocks)-1 {
 			s += "\n"
 		}
 	}
 	return s
 }
+
 func parseLines(lines []string) Grid {
-	grid := make(Grid, len(lines))
+	rocks := make([][]Rock, len(lines))
+	n_rows := len(lines)
+	n_cols := len(lines[0])
 	for i, line := range lines {
-		grid[i] = make([]Rock, len(line))
+		rocks[i] = make([]Rock, len(line))
 		for j, c := range line {
 			switch c {
 			case '.':
-				grid[i][j] = EMPTY
+				rocks[i][j] = EMPTY
 			case 'O':
-				grid[i][j] = ROUND
+				rocks[i][j] = ROUND
 			case '#':
-				grid[i][j] = SQUARE
+				rocks[i][j] = SQUARE
 			default:
 				panic("invalid character")
 			}
 		}
 	}
-	return grid
+	return Grid{&rocks, n_rows, n_cols}
 }
 
 // Slide all the round rocks in the grid to the north
-func slideNorth(g *Grid) {
-	n_rows := len(*g)
-	for i := 0; i < n_rows; i++ {
-		// Slide the ith row to the north as much as possible
-		slideRowNorth(g, i)
-	}
-}
-
-func slideRowNorth(g *Grid, row int) {
-	n_cols := len((*g)[0])
-	for col := 0; col < n_cols; col++ {
-		// Slide the ith column to the north as much as possible
-		slideRowColNorth(g, row, col)
-	}
-}
-
-func slideRowColNorth(g *Grid, row, col int) {
-	if (*g)[row][col] != ROUND {
-		// The rock is not round, so it cannot be slid
-		return
-	}
-	if row == 0 {
-		// The rock is already at the top of the grid so cannot be slid
-		return
-	}
-	rock_above := (*g)[row-1][col]
-	if rock_above == EMPTY {
-		// The rock can be slid to the north
-		(*g)[row-1][col] = ROUND
-		(*g)[row][col] = EMPTY
-		// Call the function recursively to keep sliding the rock to the north
-		slideRowColNorth(g, row-1, col)
+func slideNorth(g Grid) {
+	for row := 1; row < g.rows; row++ {
+		for col := 0; col < g.cols; col++ {
+			if (*g.rocks)[row][col] != ROUND {
+				continue
+			}
+			row2 := row
+			rock_above := (*g.rocks)[row2-1][col]
+			for rock_above == EMPTY {
+				row2--
+				if row2 == 0 {
+					break
+				}
+				rock_above = (*g.rocks)[row2-1][col]
+			}
+			(*g.rocks)[row][col], (*g.rocks)[row2][col] = EMPTY, ROUND
+		}
 	}
 }
 
 // ======================================================================
 
-func calcNorthWeight(g *Grid) int {
+func calcNorthWeight(g Grid) int {
 	weight := 0
-	n_rows := len(*g)
-	for i := 0; i < n_rows; i++ {
-		for j := 0; j < len((*g)[0]); j++ {
-			if (*g)[i][j] == ROUND {
-				weight += (n_rows - i)
+
+	for i := 0; i < g.rows; i++ {
+		for j := 0; j < g.cols; j++ {
+			if (*g.rocks)[i][j] == ROUND {
+				weight += (g.rows - i)
 			}
 		}
 	}
