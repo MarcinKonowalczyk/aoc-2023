@@ -19,11 +19,34 @@ func main_1(lines []string) (n int, err error) {
 	if err != nil {
 		return -1, err
 	}
-	fmt.Println("Found maps:", len(maps))
-	for _, m := range maps {
-		fmt.Println(m)
+
+	summary := 0
+
+	for i, m := range maps {
+		vfold, hfold, err := tryAllFolds(m)
+		if err != nil {
+			return -1, err
+		}
+
+		if vfold == -1 && hfold == -1 {
+			return -1, fmt.Errorf("no fold found for map %d", i)
+		} else if vfold >= 0 && hfold >= 0 {
+			return -1, fmt.Errorf("both vertical and horizontal folds found for map %d", i)
+		}
+
+		if vfold >= 0 {
+			// fmt.Println("Vertical fold found for map", i+1, "between columns", vfold+1, "and", vfold+2)
+			summary += vfold + 1
+		}
+
+		if hfold >= 0 {
+			// fmt.Println("Horizontal fold found for map", i+1, "between rows", hfold+1, "and", hfold+2)
+			summary += 100 * (hfold + 1)
+		}
+
 	}
-	return 0, nil
+
+	return summary, nil
 }
 
 type Map [][]bool
@@ -41,7 +64,7 @@ func (m Map) nCols() int {
 
 func (m Map) String() string {
 	s := "Map:\n"
-	for _, row := range m {
+	for i, row := range m {
 		for _, cell := range row {
 			if cell {
 				s += "#"
@@ -49,7 +72,9 @@ func (m Map) String() string {
 				s += "."
 			}
 		}
-		s += "\n"
+		if i < len(m)-1 {
+			s += "\n"
+		}
 	}
 	return s
 }
@@ -81,4 +106,99 @@ func parseLines(lines []string) ([]Map, error) {
 		maps = append(maps, m)
 	}
 	return maps, nil
+}
+
+// Fold about a vertical axis between i and i+1 columns
+func vFold(m Map, i int) (Map, error) {
+	if i < 0 {
+		return nil, fmt.Errorf("invalid column index: %d", i)
+	}
+	if i+1 >= m.nCols() {
+		return nil, fmt.Errorf("invalid column index: %d", i+1)
+	}
+
+	dx1 := i + 1
+	dx2 := m.nCols() - i - 1
+	n_cols := min(dx1, dx2)
+	out := make(Map, m.nRows())
+	for r := 0; r < m.nRows(); r++ {
+		row := make([]bool, n_cols)
+		for c := 0; c < n_cols; c++ {
+			right_c := i + 1 + c
+			left_c := i - c
+			left_val := m[r][left_c]
+			right_val := m[r][right_c]
+			if left_val == right_val {
+				row[c] = true
+			}
+		}
+		out[r] = row
+	}
+	return out, nil
+}
+
+func (m Map) allTrue() bool {
+	for _, row := range m {
+		for _, cell := range row {
+			if !cell {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (m Map) transpose() Map {
+	out := make(Map, m.nCols())
+	for c := 0; c < m.nCols(); c++ {
+		row := make([]bool, m.nRows())
+		for r := 0; r < m.nRows(); r++ {
+			row[r] = m[r][c]
+		}
+		out[c] = row
+	}
+	return out
+}
+
+// Fold about a horizontal axis between i and i+1 rows
+// This is the same as folding about a vertical axis between i and i+1 columns
+func hFold(m Map, i int) (Map, error) {
+	transposed := m.transpose()
+	folded, err := vFold(transposed, i)
+	if err != nil {
+		return nil, err
+	}
+	return folded.transpose(), nil
+}
+
+func tryAllFolds(m Map) (vfold, hfold int, err error) {
+	v_fold := -1
+	for j := 0; j < m.nCols()-1; j++ {
+		folded, err := vFold(m, j)
+		if err != nil {
+			return -1, -1, err
+		}
+		if folded.allTrue() {
+			v_fold = j
+			break
+		}
+	}
+	if v_fold >= 0 {
+		return v_fold, -1, nil
+	}
+	h_fold := -1
+	for j := 0; j < m.nRows()-1; j++ {
+		folded, err := hFold(m, j)
+		if err != nil {
+			return -1, -1, err
+		}
+		if folded.allTrue() {
+			h_fold = j
+			break
+		}
+	}
+	if h_fold >= 0 {
+		return -1, h_fold, nil
+	}
+	return -1, -1, nil
 }
