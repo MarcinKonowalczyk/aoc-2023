@@ -1,10 +1,26 @@
 package day14
 
-import "fmt"
+import (
+	"aoc2023/utils"
+	"fmt"
+)
 
 const N = 1000000000
 
+// const N = 100
+
 func main_2(lines []string) (n int, err error) {
+
+	// f, err := os.Create("cpu.prof")
+	// if err != nil {
+	// 	log.Fatal("could not create CPU profile: ", err)
+	// }
+	// defer f.Close() // error handling omitted for example
+	// if err := pprof.StartCPUProfile(f); err != nil {
+	// 	log.Fatal("could not start CPU profile: ", err)
+	// }
+	// defer pprof.StopCPUProfile()
+
 	grid := parseLines(lines)
 	// spinCycle(&grid)
 	// fmt.Println("After 1 spin cycle:")
@@ -16,43 +32,22 @@ func main_2(lines []string) (n int, err error) {
 	// fmt.Println("After 3 spin cycles:")
 	// fmt.Println(grid)
 
-	var weight int = 0
-	for i := 0; i < N; i++ {
-		if i%(N/1000) == 0 {
-			done_percent := float64(i) / N * 100
-			fmt.Printf("%.4f%%\n", done_percent)
-		}
+	// Do a bunch of cycles and record weigbt after each one, to find cycles
+	weights := make([]int, 1000)
+	for i := 0; i < 1000; i++ {
 		spinCycle(grid)
+		weights[i] = calcNorthWeight(grid)
 	}
-	weight = calcNorthWeight(grid)
-	return weight, nil
+
+	cycle_start, cycle_period := utils.DetectCycles(weights)
+	if cycle_start == -1 {
+		return -1, fmt.Errorf("no cycle found")
+	}
+
+	// fmt.Printf("Cycle detected: start=%d, period=%d\n", cycle_start, cycle_period)
+	extrapolated_weight := utils.ExtrapolateCycle(weights, N-1, cycle_start, cycle_period)
+	return extrapolated_weight, nil
 }
-
-// type Direction int
-
-// const (
-// 	NORTH Direction = iota
-// 	EAST
-// 	SOUTH
-// 	WEST
-// )
-
-// func rotateClockwise(g *Grid) {
-// 	n_rows := len(*g)
-// 	n_cols := len((*g)[0])
-// 	var temp Rock // for swapping
-// 	for i := 0; i < n_rows/2; i++ {
-// 		for j := 0; j < n_cols/2; j++ {
-// 			ii := n_rows - i - 1 // i from the bottom
-// 			jj := n_cols - j - 1 // j from the right
-// 			temp = (*g)[i][j]
-// 			(*g)[i][j] = (*g)[jj][i]
-// 			(*g)[jj][i] = (*g)[ii][jj]
-// 			(*g)[ii][jj] = (*g)[j][ii]
-// 			(*g)[j][ii] = temp
-// 		}
-// 	}
-// }
 
 func spinCycle(g Grid) {
 	// slideNorth(g)      // actual north

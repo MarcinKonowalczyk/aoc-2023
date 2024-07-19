@@ -3,33 +3,29 @@ package utils
 import "fmt"
 
 type CycleDetection struct {
-	Sequence   []int // The sequence of elements
-	tortoise   int   // The position of the tortoise
-	hare       int   // The position of the hare
-	cycle      []int // The cycle [start, end]
-	prev_cycle []int // The previous cycle [start, end]
+	Sequence []int // The sequence of elements
+	tortoise int   // The position of the tortoise
+	hare     int   // The position of the hare
+	Start    int   // The start of the cycle
+	Period   int   // The period of the cycle
 }
 
 func NewCycleDetection() *CycleDetection {
 	return &CycleDetection{
 		// Sequence: []int{},
-		tortoise:   -1,
-		hare:       -1,
-		cycle:      []int{-1, -1},
-		prev_cycle: []int{-1, -1},
+		tortoise: -1,
+		hare:     -1,
+		Start:    -1,
+		Period:   -1,
 	}
 }
 
 func (cd CycleDetection) hasCycle() bool {
-	return cd.cycle[0] != -1
-}
-
-func (cd CycleDetection) hasPrevCycle() bool {
-	return cd.prev_cycle[0] != -1
+	return cd.Start != -1
 }
 
 func (cd CycleDetection) String() string {
-	return fmt.Sprintf("Tortoise: %d, Hare: %d, Cycle: %v", cd.tortoise, cd.hare, cd.cycle)
+	return fmt.Sprintf("Tortoise: %d, Hare: %d, Start: %d, Period: %d", cd.tortoise, cd.hare, cd.Start, cd.Period)
 }
 
 // Add a new element to the sequence and recomputes the tortoise and hare
@@ -43,11 +39,12 @@ func (cd *CycleDetection) Feed(n int) {
 		// If we have a cycle saved
 		// Check that the cycle which we have found is still valid based on the
 
-		expected_index := cd.cycle[0] + (cd.hare-cd.cycle[0])%cd.cycle[1]
+		expected_index := cd.Start + (cd.hare-cd.Start)%cd.Period
 		expected_value := cd.Sequence[expected_index]
 		if n != expected_value {
 			// The cycle we're on is invalid.
-			cd.cycle = []int{-1, -1}
+			cd.Start = -1
+			cd.Period = -1
 		}
 	}
 
@@ -58,8 +55,8 @@ func (cd *CycleDetection) Feed(n int) {
 
 	if cd.Sequence[cd.tortoise] == cd.Sequence[cd.hare] {
 		start, period := processTortoiseHare(cd.tortoise, cd.hare, cd.Sequence)
-		cd.cycle = []int{start, period}
-		cd.prev_cycle = cd.cycle
+		cd.Start = start
+		cd.Period = period
 	}
 
 }
@@ -68,10 +65,6 @@ func (cd *CycleDetection) FeedAll(seq []int) {
 	for _, n := range seq {
 		cd.Feed(n)
 	}
-}
-
-func (cd *CycleDetection) GetResult() (int, int) {
-	return cd.cycle[0], cd.cycle[1]
 }
 
 func processTortoiseHare(
@@ -151,4 +144,35 @@ func processTortoiseHare(
 	// fmt.Println("final", "start", start, "period", end-start)
 
 	return start, end - start
+}
+
+func DetectCycles(seq []int) (int, int) {
+	cd := NewCycleDetection()
+	cd.FeedAll(seq)
+	return cd.Start, cd.Period
+}
+
+func (cd *CycleDetection) Reset() {
+	cd.Sequence = []int{}
+	cd.tortoise = -1
+	cd.hare = -1
+	cd.Start = -1
+	cd.Period = -1
+}
+
+func (cd *CycleDetection) Extrapolate(n int) int {
+	// Given the current cycle, extrapolate the value at position n
+	if !cd.hasCycle() {
+		panic("No cycle detected")
+	}
+	return ExtrapolateCycle(cd.Sequence, n, cd.Start, cd.Period)
+}
+
+func ExtrapolateCycle(seq []int, n, start, period int) int {
+	if n < start {
+		return seq[n]
+	}
+	delta := n - start
+	index := start + delta%period
+	return seq[index]
 }

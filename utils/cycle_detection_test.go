@@ -41,7 +41,8 @@ func TestCycleDetection_NoCycle(t *testing.T) {
 	}
 
 	// Because of how the algorithm works, we always have a cycle of 0, 0
-	AssertEqualWithComparator(t, cd.cycle, []int{-1, -1}, CompareArrays)
+	// AssertEqualWithComparator(t, cd.Cycle, []int{-1, -1}, CompareArrays)
+	AssertEqual(t, cd.hasCycle(), false)
 }
 
 func TestCycleDetection_SimpleCycle(t *testing.T) {
@@ -53,8 +54,9 @@ func TestCycleDetection_SimpleCycle(t *testing.T) {
 	for _, n := range seq {
 		cd.Feed(n)
 	}
-
-	AssertEqualWithComparator(t, cd.cycle, []int{0, 3}, CompareArrays)
+	AssertEqual(t, cd.hasCycle(), true)
+	AssertEqual(t, cd.Start, 0)
+	AssertEqual(t, cd.Period, 3)
 }
 
 func TestCycleDetection_CycleWithPrefix(t *testing.T) {
@@ -66,66 +68,63 @@ func TestCycleDetection_CycleWithPrefix(t *testing.T) {
 		cd.Feed(n)
 	}
 
-	AssertEqualWithComparator(t, cd.cycle, []int{10, 3}, CompareArrays)
+	// AssertEqualWithComparator(t, cd.Cycle, []int{10, 3}, CompareArrays)
+	AssertEqual(t, cd.hasCycle(), true)
+	AssertEqual(t, cd.Start, 10)
+	AssertEqual(t, cd.Period, 3)
 }
 
-func TestCycleDetection_GetResult(t *testing.T) {
-	seq := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3}
-	// Cycle                                       ^...................................^
-	// Start at 10, period is 3
-
-	cd := NewCycleDetection()
-	cd.FeedAll(seq)
-
-	start, period := cd.GetResult()
-	AssertEqual(t, start, 10)
-	AssertEqual(t, period, 3)
-}
-
-func TestCycleDetection_GetResult_PrimePeriod(t *testing.T) {
+func TestCycleDetection_PrimePeriod(t *testing.T) {
 	seq := []int{9, 9, 9, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}
 	// Cycle              ^...........^
 
 	cd := NewCycleDetection()
 	cd.FeedAll(seq)
 
-	start, period := cd.GetResult()
-	AssertEqual(t, start, 3)
-	AssertEqual(t, period, 5)
+	AssertEqual(t, cd.Start, 3)
+	AssertEqual(t, cd.Period, 5)
 }
 
-func TestCycleDetection_GetResult_Temp(t *testing.T) {
+func TestCycleDetection_SpecificCase(t *testing.T) {
 	cd := NewCycleDetection()
-	start, period := cd.GetResult()
 	// Nothing happened yet
-	AssertEqual(t, start, -1)
-	AssertEqual(t, period, -1)
+	AssertEqual(t, cd.Start, -1)
+	AssertEqual(t, cd.Period, -1)
 
 	cd.Feed(9)
 	// 9 -> 0,1
-	start, period = cd.GetResult()
 	// We've fed one number so far, so the best guess is that it's a cycle of 0, 1
-	AssertEqual(t, start, 0)
-	AssertEqual(t, period, 1)
+	AssertEqual(t, cd.Start, 0)
+	AssertEqual(t, cd.Period, 1)
 
 	cd.Feed(9)
 	// 99 -> 0,1
-	start, period = cd.GetResult()
 	// This shoudl start looking like a cycle
-	AssertEqual(t, start, 0)
-	AssertEqual(t, period, 1)
+	AssertEqual(t, cd.Start, 0)
+	AssertEqual(t, cd.Period, 1)
 
 	cd.Feed(9)
 	// 999 -> 0,1
-	start, period = cd.GetResult()
 	// Still a cycle
-	AssertEqual(t, start, 0)
-	AssertEqual(t, period, 1)
+	AssertEqual(t, cd.Start, 0)
+	AssertEqual(t, cd.Period, 1)
 
 	cd.Feed(1)
 	// 9991 -> 3,1
-	start, period = cd.GetResult()
 	// Ups. I guess not. This invalidates the cycle
-	AssertEqual(t, start, -1)
-	AssertEqual(t, period, -1)
+	AssertEqual(t, cd.Start, -1)
+	AssertEqual(t, cd.Period, -1)
+}
+
+func TestCycleDetection_Extrapolate(t *testing.T) {
+
+	seq := []int{9, 9, 9, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}
+	// Cycle              ^...........^
+
+	cd := NewCycleDetection()
+	cd.FeedAll(seq)
+
+	for i := cd.Start; i < len(seq); i++ {
+		AssertEqual(t, seq[i], cd.Extrapolate(i))
+	}
 }
