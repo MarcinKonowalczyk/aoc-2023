@@ -117,7 +117,6 @@ func TestCycleDetection_SpecificCase(t *testing.T) {
 }
 
 func TestCycleDetection_Extrapolate(t *testing.T) {
-
 	seq := []int{9, 9, 9, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}
 	// Cycle              ^...........^
 
