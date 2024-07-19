@@ -146,7 +146,7 @@ func processTortoiseHare(
 	return start, end - start
 }
 
-func DetectCycles(seq []int) (int, int) {
+func DetectCycle(seq []int) (int, int) {
 	cd := NewCycleDetection()
 	cd.FeedAll(seq)
 	return cd.Start, cd.Period

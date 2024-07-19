@@ -17,7 +17,7 @@ func main_2(lines []string) (n int, err error) {
 		weights[i] = calcNorthWeight(grid)
 	}
 
-	cycle_start, cycle_period := utils.DetectCycles(weights)
+	cycle_start, cycle_period := utils.DetectCycle(weights)
 	if cycle_start == -1 {
 		return -1, fmt.Errorf("no cycle found")
 	}
