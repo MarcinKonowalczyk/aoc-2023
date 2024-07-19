@@ -77,3 +77,18 @@ func TestArrayReverse(t *testing.T) {
 	result = ArrayReverse(arr2)
 	AssertEqualWithComparator(t, result, []int{4, 3, 2, 1}, CompareArrays)
 }
+
+func TestArrayUnique(t *testing.T) {
+	arr1 := []int{1, 2, 3, 4, 5}
+	result := ArrayUnique(arr1)
+	AssertEqualWithComparator(t, result, []int{1, 2, 3, 4, 5}, CompareArrays)
+	arr2 := []int{1, 2, 3, 4, 5, 1, 2, 3, 4, 5}
+	result = ArrayUnique(arr2)
+	AssertEqualWithComparator(t, result, []int{1, 2, 3, 4, 5}, CompareArrays)
+}
+
+func TestArrayUniqueEmpty(t *testing.T) {
+	arr1 := []int{}
+	result := ArrayUnique(arr1)
+	AssertEqualWithComparator(t, result, []int{}, CompareArrays)
+}

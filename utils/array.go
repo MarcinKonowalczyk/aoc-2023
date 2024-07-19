@@ -206,10 +206,24 @@ func ArrayContainsFunc[T any](arr []T, test func(T) bool) bool {
 	return ArrayIndexOfFunc(arr, test) != -1
 }
 
+// Remove element at index from an array. Return the new array.
 func ArrayRemoveIndex[T any](arr []T, index int) []T {
 	before := arr[:index]
 	after := arr[index+1:]
 	return append(before, after...)
+}
+
+// Remove all elements from an array that match a value. Return the new array.
+func ArrayUnique[T comparable](arr []T) []T {
+	uniques_map := make(map[T]struct{})
+	uniques := make([]T, 0)
+	for _, n := range arr {
+		if _, ok := uniques_map[n]; !ok {
+			uniques = append(uniques, n)
+			uniques_map[n] = struct{}{}
+		}
+	}
+	return uniques
 }
 
 // Interface for numeric types
