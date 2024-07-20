@@ -43,21 +43,80 @@ const (
 	MIRROR_SLASH     tile = '/'
 	MIRROR_BACKSLASH tile = '\\'
 
-	// tiles describing the direction of the beam
-	UP                 tile = '^'
-	DOWN               tile = 'v'
-	LEFT               tile = '<'
-	RIGHT              tile = '>'
-	UP_RIGHT           tile = '1'
-	DOWN_RIGHT         tile = '2'
-	DOWN_LEFT          tile = '3'
-	UP_LEFT            tile = '4'
-	UP_RIGHT_DOWN      tile = '5'
-	RIGHT_DOWN_LEFT    tile = '6'
-	DOWN_LEFT_UP       tile = '7'
-	LEFT_UP_RIGHT      tile = '8'
-	UP_RIGHT_DOWN_LEFT tile = '9'
+	// single directions
+	UP    tile = '^'
+	DOWN  tile = 'v'
+	LEFT  tile = '<'
+	RIGHT tile = '>'
+	// L shaped beams
+	UP_RIGHT   tile = 'L'
+	DOWN_RIGHT tile = 'F'
+	DOWN_LEFT  tile = '7'
+	UP_LEFT    tile = 'J'
+	// Line beams
+	UP_DOWN    tile = ':'
+	LEFT_RIGHT tile = '='
+	// T shaped beams
+	UP_RIGHT_DOWN   tile = 'E'
+	RIGHT_DOWN_LEFT tile = 'T'
+	DOWN_LEFT_UP    tile = '3'
+	LEFT_UP_RIGHT   tile = 'W'
+	// Cross
+	UP_RIGHT_DOWN_LEFT tile = '+'
 )
+
+func (t tile) Name() string {
+	switch t {
+	// tiles for the grid
+	case EMPTY:
+		return "EMPTY"
+	case VERTIAL:
+		return "VERTIAL"
+	case HORIZONTAL:
+		return "HORIZONTAL"
+	case MIRROR_SLASH:
+		return "MIRROR_SLASH"
+	case MIRROR_BACKSLASH:
+		return "MIRROR_BACKSLASH"
+	// single directions
+	case UP:
+		return "UP"
+	case DOWN:
+		return "DOWN"
+	case LEFT:
+		return "LEFT"
+	case RIGHT:
+		return "RIGHT"
+	// L shaped beams
+	case UP_RIGHT:
+		return "UP_RIGHT"
+	case DOWN_RIGHT:
+		return "DOWN_RIGHT"
+	case DOWN_LEFT:
+		return "DOWN_LEFT"
+	case UP_LEFT:
+		return "UP_LEFT"
+	// Line beams
+	case UP_DOWN:
+		return "UP_DOWN"
+	case LEFT_RIGHT:
+		return "LEFT_RIGHT"
+	// T shaped beams
+	case UP_RIGHT_DOWN:
+		return "UP_RIGHT_DOWN"
+	case RIGHT_DOWN_LEFT:
+		return "RIGHT_DOWN_LEFT"
+	case DOWN_LEFT_UP:
+		return "DOWN_LEFT_UP"
+	case LEFT_UP_RIGHT:
+		return "LEFT_UP_RIGHT"
+	// Cross
+	case UP_RIGHT_DOWN_LEFT:
+		return "UP_RIGHT_DOWN_LEFT"
+	default:
+		return "UNKNOWN"
+	}
+}
 
 func (t tile) isBeam() bool {
 	return t == UP || t == DOWN || t == LEFT || t == RIGHT || t == UP_RIGHT || t == DOWN_RIGHT || t == DOWN_LEFT || t == UP_LEFT || t == UP_RIGHT_DOWN || t == RIGHT_DOWN_LEFT || t == DOWN_LEFT_UP || t == LEFT_UP_RIGHT || t == UP_RIGHT_DOWN_LEFT
@@ -75,19 +134,34 @@ type beam_end struct {
 
 type grid struct {
 	tiles     [][]tile
+	trails    [][]tile
 	rows      int
 	cols      int
 	beam_ends []beam_end
 }
 
 func (g grid) String() string {
-	s := ""
+	s := "GRID:\n"
 	for i := 0; i < g.rows; i++ {
+		s += " "
 		for j := 0; j < g.cols; j++ {
 			s += string(g.tiles[i][j])
 		}
-		s += "\n"
+		if i < g.rows-1 {
+			s += "\n"
+		}
 	}
+	s += "\nTRAILS:\n"
+	for i := 0; i < g.rows; i++ {
+		s += " "
+		for j := 0; j < g.cols; j++ {
+			s += string(g.trails[i][j])
+		}
+		if i < g.rows-1 {
+			s += "\n"
+		}
+	}
+	s += "\n"
 	return s
 }
 
@@ -99,82 +173,378 @@ func parseLines(lines []string) (grid, error) {
 	n_cols := len(lines[0])
 	tiles := make([][]tile, n_rows)
 	for i, line := range lines {
-		tiles[i] = make([]tile, n_cols)
-		for j, r := range line {
-			tiles[i][j] = tile(r)
+		tiles[i] = make([]tile, 0)
+		for _, r := range line {
+			tiles[i] = append(tiles[i], tile(r))
+		}
+		if len(tiles[i]) != n_cols {
+			return grid{}, fmt.Errorf("inconsistent number of columns")
 		}
 	}
-	if tiles[0][0] != EMPTY {
-		return grid{}, fmt.Errorf("0, 0 is not empty")
+	trails := make([][]tile, n_rows)
+	for i := 0; i < n_rows; i++ {
+		trails[i] = make([]tile, n_cols)
+		for j := 0; j < n_cols; j++ {
+			trails[i][j] = EMPTY
+		}
 	}
-	tiles[0][0] = RIGHT
-	return grid{tiles, n_rows, n_cols, []beam_end{{0, 0, RIGHT}}}, nil
+	return grid{tiles, trails, n_rows, n_cols, []beam_end{{0, 0, RIGHT}}}, nil
 }
 
 func (g *grid) stepBeams() (bool, error) {
 	if len(g.beam_ends) == 0 {
 		return false, nil
 	}
-	for _, beam_end := range g.beam_ends {
-		t := g.tiles[beam_end.y][beam_end.x]
-		if !t.isBeam() {
-			panic("beam end is not a beam")
-		}
-		current_tile := g.tiles[beam_end.y][beam_end.x]
-		fmt.Println("current_tile", current_tile)
-		switch current_tile {
+	nb := make([]beam_end, 0)
+	for _, b := range g.beam_ends {
+		t := g.tiles[b.y][b.x]
+		fmt.Printf("%d,%d %s::%s\n", b.y, b.x, t.Name(), b.t.Name())
+		switch t {
 		case EMPTY:
-			panic("EMPTY not implemented")
+			switch b.t {
+			case UP:
+				if b.y == 0 {
+					// We cant go up anymore because we are at the top edge of the grid
+				} else {
+					// We keep going up
+					nb = append(nb, beam_end{b.x, b.y - 1, UP})
+				}
+			case DOWN:
+				if b.y == g.rows-1 {
+					// We cant go down anymore because we are at the bottom edge of the grid
+				} else {
+					// We keep going down
+					nb = append(nb, beam_end{b.x, b.y + 1, DOWN})
+				}
+			case LEFT:
+				if b.x == 0 {
+					// We cant go left anymore because we are at the left edge of the grid
+				} else {
+					// We keep going left
+					nb = append(nb, beam_end{b.x - 1, b.y, LEFT})
+				}
+			case RIGHT:
+				if b.x == g.cols-1 {
+					// We cant go right anymore because we are at the right edge of the grid
+				} else {
+					// We keep going right
+					nb = append(nb, beam_end{b.x + 1, b.y, RIGHT})
+				}
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case VERTIAL:
-			panic("VERTICAL not implemented")
+			switch b.t {
+			case UP:
+				if b.y > 0 {
+					nb = append(nb, beam_end{b.x, b.y - 1, UP})
+				}
+			case DOWN:
+				if b.y < g.rows-1 {
+					nb = append(nb, beam_end{b.x, b.y + 1, DOWN})
+				}
+			case LEFT, RIGHT:
+				if b.y > 0 {
+					nb = append(nb, beam_end{b.x, b.y - 1, UP})
+				}
+				if b.y < g.rows-1 {
+					nb = append(nb, beam_end{b.x, b.y + 1, DOWN})
+				}
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case HORIZONTAL:
-			panic("HORIZONTAL not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				if b.x == 0 {
+					// We can't go left from here
+				} else {
+					nb = append(nb, beam_end{b.x - 1, b.y, LEFT})
+				}
+				if b.x == g.cols-1 {
+					// We can't go right from here
+				} else {
+					nb = append(nb, beam_end{b.x + 1, b.y, RIGHT})
+				}
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				// Carry on as if this is empty space
+				if b.x == g.cols-1 {
+					// We cant go right anymore because we are at the right edge of the grid
+				} else {
+					nb = append(nb, beam_end{b.x + 1, b.y, RIGHT})
+				}
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case MIRROR_SLASH:
-			panic("MIRROR_SLASH not implemented")
+			if b.t == UP {
+				if b.x == g.cols-1 {
+					// We cant go right anymore because we are at the right edge of the grid
+				} else {
+					nb = append(nb, beam_end{b.x + 1, b.y, RIGHT})
+				}
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				if b.y == 0 {
+					// We can't go up from here
+				} else {
+					nb = append(nb, beam_end{b.x, b.y - 1, UP})
+				}
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case MIRROR_BACKSLASH:
-			panic("MIRROR_BACKSLASH not implemented")
+			if b.t == UP {
+				if b.x == 0 {
+					// We cant go left anymore because we are at the left edge of the grid
+				} else {
+					nb = append(nb, beam_end{b.x - 1, b.y, LEFT})
+				}
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				if b.y == 0 {
+					// We can't go up from here
+				} else {
+					nb = append(nb, beam_end{b.x, b.y - 1, UP})
+				}
+			} else if b.t == RIGHT {
+				if b.y == g.rows-1 {
+					// We can't go down from here
+				} else {
+					nb = append(nb, beam_end{b.x, b.y + 1, DOWN})
+				}
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case UP:
-			panic("UP not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case DOWN:
-			panic("DOWN not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case LEFT:
-			panic("LEFT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case RIGHT:
-			panic("RIGHT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case UP_RIGHT:
-			panic("UP_RIGHT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case DOWN_RIGHT:
-			panic("DOWN_RIGHT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case DOWN_LEFT:
-			panic("DOWN_LEFT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case UP_LEFT:
-			panic("UP_LEFT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
+		case UP_DOWN:
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
+		case LEFT_RIGHT:
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case UP_RIGHT_DOWN:
-			panic("UP_RIGHT_DOWN not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case RIGHT_DOWN_LEFT:
-			panic("RIGHT_DOWN_LEFT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case DOWN_LEFT_UP:
-			panic("DOWN_LEFT_UP not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case LEFT_UP_RIGHT:
-			panic("LEFT_UP_RIGHT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		case UP_RIGHT_DOWN_LEFT:
-			panic("UP_RIGHT_DOWN_LEFT not implemented")
+			if b.t == UP {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == DOWN {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == LEFT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else if b.t == RIGHT {
+				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
+			} else {
+				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
+			}
 		default:
 			panic("invalid tile")
 		}
-
-		// if beam_end.t == UP {
-		// 	stepBeamUp(g, beam_end)
-		// } else if beam_end.t == DOWN {
-		// 	//
-		// } else if beam_end.t == LEFT {
-		// 	//
-		// } else if beam_end.t == RIGHT {
-		// 	//
-		// } else {
-		// 	panic("invalid beam end")
-		// }
 	}
+
+	// Prune new beam ends
+	to_prune := []int{}
+	for i := 0; i < len(nb); i++ {
+		b := nb[i]
+		r := g.trails[b.y][b.x]
+		switch b.t {
+		case UP:
+			switch r {
+			case UP, UP_LEFT, UP_RIGHT, UP_DOWN, UP_RIGHT_DOWN, LEFT_UP_RIGHT, DOWN_LEFT_UP, UP_RIGHT_DOWN_LEFT:
+				to_prune = append(to_prune, i)
+			}
+		case DOWN:
+			switch r {
+			case DOWN, DOWN_LEFT, DOWN_RIGHT, UP_DOWN, UP_RIGHT_DOWN, RIGHT_DOWN_LEFT, UP_RIGHT_DOWN_LEFT:
+				to_prune = append(to_prune, i)
+			}
+		case LEFT:
+			switch r {
+			case LEFT, UP_LEFT, DOWN_LEFT, LEFT_RIGHT, RIGHT_DOWN_LEFT, DOWN_LEFT_UP, LEFT_UP_RIGHT, UP_RIGHT_DOWN_LEFT:
+				to_prune = append(to_prune, i)
+			}
+		case RIGHT:
+			switch r {
+			case RIGHT, UP_RIGHT, DOWN_RIGHT, LEFT_RIGHT, LEFT_UP_RIGHT, UP_RIGHT_DOWN, RIGHT_DOWN_LEFT, UP_RIGHT_DOWN_LEFT:
+				to_prune = append(to_prune, i)
+			}
+		default:
+			panic("invalid beam end")
+		}
+	}
+	// TODO: Actually prune new beam ends
+	if len(to_prune) > 0 {
+		fmt.Println("Would prune", to_prune)
+	}
+
+	// Set the beam ends
+	g.beam_ends = nb
 
 	if len(g.beam_ends) == 0 {
 		return false, nil
