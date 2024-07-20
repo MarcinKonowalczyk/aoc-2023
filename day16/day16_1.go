@@ -20,13 +20,12 @@ func main_1(lines []string) (n int, err error) {
 	if err != nil {
 		return -1, err
 	}
-	// fmt.Println(grid)
+
 	for {
 		carry_on, err := grid.stepBeams()
 		if err != nil {
 			return -1, err
 		}
-		// fmt.Println(grid.DebugString())
 		if !carry_on {
 			break
 		}
@@ -121,14 +120,6 @@ func (t tile) Name() string {
 	}
 }
 
-func (t tile) isBeam() bool {
-	return t == UP || t == DOWN || t == LEFT || t == RIGHT || t == UP_RIGHT || t == DOWN_RIGHT || t == DOWN_LEFT || t == UP_LEFT || t == UP_RIGHT_DOWN || t == RIGHT_DOWN_LEFT || t == DOWN_LEFT_UP || t == LEFT_UP_RIGHT || t == UP_RIGHT_DOWN_LEFT
-}
-
-// func (t tile) isMirror() bool {
-// 	return t == MIRROR_SLASH || t == MIRROR_BACKSLASH
-// }
-
 type beam_end struct {
 	x int
 	y int
@@ -142,31 +133,6 @@ type grid struct {
 	cols      int
 	beam_ends []beam_end
 }
-
-// func (g grid) String() string {
-// 	s := "GRID:\n"
-// 	for i := 0; i < g.rows; i++ {
-// 		s += " "
-// 		for j := 0; j < g.cols; j++ {
-// 			s += string(g.tiles[i][j])
-// 		}
-// 		if i < g.rows-1 {
-// 			s += "\n"
-// 		}
-// 	}
-// 	s += "\nTRAILS:\n"
-// 	for i := 0; i < g.rows; i++ {
-// 		s += " "
-// 		for j := 0; j < g.cols; j++ {
-// 			s += string(g.trails[i][j])
-// 		}
-// 		if i < g.rows-1 {
-// 			s += "\n"
-// 		}
-// 	}
-// 	s += "\n"
-// 	return s
-// }
 
 func (g grid) String() string {
 	s := ""
