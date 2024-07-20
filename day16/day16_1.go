@@ -24,14 +24,9 @@ func main_1(lines []string) (n int, err error) {
 	// Add the starting beam
 	grid.beam_ends = append(grid.beam_ends, beam_end{0, 0, RIGHT})
 
-	for {
-		carry_on, err := grid.stepBeams()
-		if err != nil {
-			return -1, err
-		}
-		if !carry_on {
-			break
-		}
+	err = grid.stepBeamsAll()
+	if err != nil {
+		return -1, err
 	}
 
 	energized := countEnergized(grid)
@@ -485,6 +480,18 @@ func (g *grid) stepBeams() (bool, error) {
 		return false, nil
 	} else {
 		return true, nil
+	}
+}
+
+func (g *grid) stepBeamsAll() error {
+	for {
+		carry_on, err := g.stepBeams()
+		if err != nil {
+			return err
+		}
+		if !carry_on {
+			return nil
+		}
 	}
 }
 
