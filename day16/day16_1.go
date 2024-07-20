@@ -21,6 +21,9 @@ func main_1(lines []string) (n int, err error) {
 		return -1, err
 	}
 
+	// Add the starting beam
+	grid.beam_ends = append(grid.beam_ends, beam_end{0, 0, RIGHT})
+
 	for {
 		carry_on, err := grid.stepBeams()
 		if err != nil {
@@ -192,7 +195,7 @@ func parseLines(lines []string) (grid, error) {
 			trails[i][j] = EMPTY
 		}
 	}
-	return grid{tiles, trails, n_rows, n_cols, []beam_end{{0, 0, RIGHT}}}, nil
+	return grid{tiles, trails, n_rows, n_cols, []beam_end{}}, nil
 }
 
 func (g *grid) stepBeams() (bool, error) {
