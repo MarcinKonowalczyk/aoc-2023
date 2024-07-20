@@ -20,12 +20,12 @@ func main_1(lines []string) (n int, err error) {
 		return -1, err
 	}
 	fmt.Println(grid)
-
 	for {
 		carry_on, err := grid.stepBeams()
 		if err != nil {
 			return -1, err
 		}
+		fmt.Println(grid)
 		if !carry_on {
 			break
 		}
@@ -140,28 +140,47 @@ type grid struct {
 	beam_ends []beam_end
 }
 
+// func (g grid) String() string {
+// 	s := "GRID:\n"
+// 	for i := 0; i < g.rows; i++ {
+// 		s += " "
+// 		for j := 0; j < g.cols; j++ {
+// 			s += string(g.tiles[i][j])
+// 		}
+// 		if i < g.rows-1 {
+// 			s += "\n"
+// 		}
+// 	}
+// 	s += "\nTRAILS:\n"
+// 	for i := 0; i < g.rows; i++ {
+// 		s += " "
+// 		for j := 0; j < g.cols; j++ {
+// 			s += string(g.trails[i][j])
+// 		}
+// 		if i < g.rows-1 {
+// 			s += "\n"
+// 		}
+// 	}
+// 	s += "\n"
+// 	return s
+// }
+
 func (g grid) String() string {
-	s := "GRID:\n"
+	s := ""
 	for i := 0; i < g.rows; i++ {
-		s += " "
 		for j := 0; j < g.cols; j++ {
-			s += string(g.tiles[i][j])
+			t := g.tiles[i][j]
+			r := g.trails[i][j]
+			if t == EMPTY {
+				s += string(r)
+			} else {
+				s += string(t)
+			}
 		}
 		if i < g.rows-1 {
 			s += "\n"
 		}
 	}
-	s += "\nTRAILS:\n"
-	for i := 0; i < g.rows; i++ {
-		s += " "
-		for j := 0; j < g.cols; j++ {
-			s += string(g.trails[i][j])
-		}
-		if i < g.rows-1 {
-			s += "\n"
-		}
-	}
-	s += "\n"
 	return s
 }
 
@@ -254,9 +273,10 @@ func (g *grid) stepBeams() (bool, error) {
 				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
 			}
 		case HORIZONTAL:
-			if b.t == UP {
+			switch b.t {
+			case UP:
 				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
-			} else if b.t == DOWN {
+			case DOWN:
 				if b.x == 0 {
 					// We can't go left from here
 				} else {
@@ -267,16 +287,16 @@ func (g *grid) stepBeams() (bool, error) {
 				} else {
 					nb = append(nb, beam_end{b.x + 1, b.y, RIGHT})
 				}
-			} else if b.t == LEFT {
+			case LEFT:
 				panic(fmt.Sprintf("%s::%s not implemented", t.Name(), b.t.Name()))
-			} else if b.t == RIGHT {
+			case RIGHT:
 				// Carry on as if this is empty space
 				if b.x == g.cols-1 {
 					// We cant go right anymore because we are at the right edge of the grid
 				} else {
 					nb = append(nb, beam_end{b.x + 1, b.y, RIGHT})
 				}
-			} else {
+			default:
 				panic(fmt.Sprintf("%s: unknown direction", t.Name()))
 			}
 		case MIRROR_SLASH:
@@ -541,6 +561,165 @@ func (g *grid) stepBeams() (bool, error) {
 	// TODO: Actually prune new beam ends
 	if len(to_prune) > 0 {
 		fmt.Println("Would prune", to_prune)
+	}
+
+	// Write the old beam ends to the trails
+	for _, b := range g.beam_ends {
+		r := g.trails[b.y][b.x]
+		switch r {
+		case EMPTY:
+			g.trails[b.y][b.x] = b.t
+		case VERTIAL, HORIZONTAL, MIRROR_SLASH, MIRROR_BACKSLASH:
+			panic(fmt.Sprintf("tile %s shoudl not appear in the trail map", r.Name()))
+		case UP:
+			switch b.t {
+			case UP:
+			case DOWN:
+				g.trails[b.y][b.x] = UP_DOWN
+			case LEFT:
+				g.trails[b.y][b.x] = UP_LEFT
+			case RIGHT:
+				g.trails[b.y][b.x] = UP_RIGHT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case DOWN:
+			switch b.t {
+			case DOWN:
+			case UP:
+				g.trails[b.y][b.x] = UP_DOWN
+			case LEFT:
+				g.trails[b.y][b.x] = DOWN_LEFT
+			case RIGHT:
+				g.trails[b.y][b.x] = DOWN_RIGHT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case LEFT:
+			switch b.t {
+			case LEFT:
+			case UP:
+				g.trails[b.y][b.x] = UP_LEFT
+			case DOWN:
+				g.trails[b.y][b.x] = DOWN_LEFT
+			case RIGHT:
+				g.trails[b.y][b.x] = LEFT_RIGHT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case RIGHT:
+			switch b.t {
+			case RIGHT:
+			case UP:
+				g.trails[b.y][b.x] = UP_RIGHT
+			case DOWN:
+				g.trails[b.y][b.x] = DOWN_RIGHT
+			case LEFT:
+				g.trails[b.y][b.x] = LEFT_RIGHT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		// L shaped beams
+		case UP_RIGHT:
+			switch b.t {
+			case UP, RIGHT:
+			case DOWN:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN
+			case LEFT:
+				g.trails[b.y][b.x] = LEFT_UP_RIGHT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case DOWN_RIGHT:
+			switch b.t {
+			case DOWN, RIGHT:
+			case UP:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN
+			case LEFT:
+				g.trails[b.y][b.x] = RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case DOWN_LEFT:
+			switch b.t {
+			case DOWN, LEFT:
+			case UP:
+				g.trails[b.y][b.x] = DOWN_LEFT_UP
+			case RIGHT:
+				g.trails[b.y][b.x] = RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case UP_LEFT:
+			switch b.t {
+			case UP, LEFT:
+			case DOWN:
+				g.trails[b.y][b.x] = DOWN_LEFT_UP
+			case RIGHT:
+				g.trails[b.y][b.x] = LEFT_UP_RIGHT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		// Line beams
+		case UP_DOWN:
+			switch b.t {
+			case UP, DOWN:
+			case LEFT:
+				g.trails[b.y][b.x] = DOWN_LEFT_UP
+			case RIGHT:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case LEFT_RIGHT:
+			switch b.t {
+			case LEFT, RIGHT:
+			case UP:
+				g.trails[b.y][b.x] = LEFT_UP_RIGHT
+			case DOWN:
+				g.trails[b.y][b.x] = RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		// T shaped beams
+		case UP_RIGHT_DOWN:
+			switch b.t {
+			case UP, RIGHT, DOWN:
+			case LEFT:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case RIGHT_DOWN_LEFT:
+			switch b.t {
+			case RIGHT, DOWN, LEFT:
+			case UP:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case DOWN_LEFT_UP:
+			switch b.t {
+			case DOWN, LEFT, UP:
+			case RIGHT:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		case LEFT_UP_RIGHT:
+			switch b.t {
+			case LEFT, UP, RIGHT:
+			case DOWN:
+				g.trails[b.y][b.x] = UP_RIGHT_DOWN_LEFT
+			default:
+				panic(fmt.Sprintf("%s: unknown direction", r.Name()))
+			}
+		// Cross
+		case UP_RIGHT_DOWN_LEFT:
+			// Do nothing. All the beams directions are already set
+		default:
+			panic("invalid tile")
+		}
 	}
 
 	// Set the beam ends
