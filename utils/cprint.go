@@ -17,7 +17,7 @@ const (
 )
 
 func (c Color) String() string {
-	return fmt.Sprintf("\033[%dm", c)
+	return fmt.Sprintf("\033[0;%dm", c)
 }
 
 const Reset = "\033[0m"
