@@ -92,3 +92,47 @@ func TestArrayUniqueEmpty(t *testing.T) {
 	result := ArrayUnique(arr1)
 	AssertEqualWithComparator(t, result, []int{}, CompareArrays)
 }
+
+func TestArray_RemoveIndices_Basic(t *testing.T) {
+	arr := []int{1, 2, 3, 4, 5}
+	to_remove := []int{0, 2, 4}
+	result, n_removed := ArrayRemoveIndices(arr, to_remove)
+	AssertEqualWithComparator(t, result, []int{2, 4}, CompareArrays)
+	AssertEqual(t, n_removed, 3)
+}
+
+func TestArray_RemoveIndices_IndicesOutOfBounds(t *testing.T) {
+	arr := []int{1, 2, 3, 4, 5}
+	to_remove := []int{0, 2, 10}
+	result, n_removed := ArrayRemoveIndices(arr, to_remove)
+	AssertEqualWithComparator(t, result, []int{2, 4, 5}, CompareArrays)
+	AssertEqual(t, n_removed, 2)
+}
+
+func TestArray_RemoveIndices_UnsortedIndices(t *testing.T) {
+	arr := []int{1, 2, 3, 4, 5}
+	to_remove := []int{4, 2, 0}
+	result, _ := ArrayRemoveIndices(arr, to_remove)
+	AssertEqualWithComparator(t, result, []int{2, 4}, CompareArrays)
+}
+
+func TestArray_RemoveIndices_DuplicateIndices(t *testing.T) {
+	arr := []int{1, 2, 3, 4, 5}
+	to_remove := []int{0, 0, 2, 4, 4}
+	result, _ := ArrayRemoveIndices(arr, to_remove)
+	AssertEqualWithComparator(t, result, []int{2, 4}, CompareArrays)
+}
+
+func TestArray_RemoveIndices_EmptyArray(t *testing.T) {
+	arr := []int{}
+	to_remove := []int{0, 2, 4}
+	result, _ := ArrayRemoveIndices(arr, to_remove)
+	AssertEqualWithComparator(t, result, []int{}, CompareArrays)
+}
+
+func TestArray_RemoveIndices_EmptyToRemove(t *testing.T) {
+	arr := []int{1, 2, 3, 4, 5}
+	to_remove := []int{}
+	result, _ := ArrayRemoveIndices(arr, to_remove)
+	AssertEqualWithComparator(t, result, []int{1, 2, 3, 4, 5}, CompareArrays)
+}

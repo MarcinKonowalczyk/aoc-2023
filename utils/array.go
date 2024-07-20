@@ -3,6 +3,7 @@ package utils
 import (
 	"cmp"
 	"errors"
+	"sort"
 )
 
 // Reduce an array using a reduce function. The accumulator is initialized to
@@ -204,6 +205,36 @@ func ArrayContains[T comparable](arr []T, elem T) bool {
 // Convenience function to check if an element is in an array using a test.
 func ArrayContainsFunc[T any](arr []T, test func(T) bool) bool {
 	return ArrayIndexOfFunc(arr, test) != -1
+}
+
+func ArrayRemoveIndices[T any](arr []T, indices []int) ([]T, int) {
+	N := len(arr)
+	if N == 0 {
+		return arr, 0
+	}
+	if len(indices) == 0 {
+		return arr, 0
+	}
+	// Discard indices that are out of bound
+	indices = ArrayFilter(indices, func(i int) bool { return i >= 0 && i < N })
+	// Discard duplicates
+	indices = ArrayUnique(indices)
+	// Sort the indices in ascending order
+	sort.Ints(indices)
+	// Remove elements at the indices in reverse order
+	// to avoid changing the indices of elements to remove
+	new_arr := make([]T, 0, N-len(indices))
+	indices_index := 0
+	n_removed := 0
+	for i := 0; i < N; i++ {
+		if indices_index < len(indices) && i == indices[indices_index] {
+			indices_index++
+			n_removed++
+			continue
+		}
+		new_arr = append(new_arr, arr[i])
+	}
+	return new_arr, n_removed
 }
 
 // Remove element at index from an array. Return the new array.
