@@ -1,6 +1,9 @@
 package day15
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func Main(part int, lines []string) (n int, err error) {
 	if part == 1 {
@@ -13,10 +16,30 @@ func Main(part int, lines []string) (n int, err error) {
 }
 
 func main_1(lines []string) (n int, err error) {
-	fmt.Println("Hello from main_1")
-	fmt.Printf("Got %d lines\n", len(lines))
-	for _, line := range lines {
-		fmt.Println(line)
+	if len(lines) != 1 {
+		return -1, fmt.Errorf("invalid input")
 	}
-	return 0, nil
+	steps := strings.Split(lines[0], ",")
+
+	sum := 0
+	for _, step := range steps {
+		h := hash(step)
+		// fmt.Printf("Step %d: %s, hash: %d\n", i, step, h)
+		sum += int(h)
+	}
+	return sum, nil
+}
+
+func hash(s string) uint8 {
+	c := 0
+	for _, r := range s {
+		c += int(r)
+		c *= 17
+		c %= 256
+	}
+	if c < 0 || c > 255 {
+		// Sanity check
+		panic("invalid hash")
+	}
+	return uint8(c)
 }
