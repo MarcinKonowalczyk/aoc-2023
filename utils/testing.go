@@ -104,3 +104,26 @@ func AssertEqualArrays[T comparable](t *testing.T, a []T, b []T) {
 func AssertEqualMaps[T comparable, V comparable](t *testing.T, a map[T]V, b map[T]V) {
 	AssertEqualWithComparator(t, a, b, CompareMaps)
 }
+
+// Check if two arrays are equal, regardless of the order of the elements.
+func CompareArraysUnordered[T comparable](a []T, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	am := make(map[T]int) // map from element to count
+	for _, e := range a {
+		am[e]++
+	}
+	// Iterate over b, decrementing the count of each element in am.
+	for _, e := range b {
+		if am[e] == 0 {
+			return false
+		}
+		am[e]--
+	}
+	return true
+}
+
+func AssertEqualArraysUnordered[T comparable](t *testing.T, a []T, b []T) {
+	AssertEqualWithComparator(t, a, b, CompareArraysUnordered)
+}

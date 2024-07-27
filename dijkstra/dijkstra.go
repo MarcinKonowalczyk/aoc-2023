@@ -1,46 +1,82 @@
 package dijkstra
 
 import (
-	"sync"
+	"fmt"
+	"math"
 )
 
-// Vertex is the interface that describes the methods that a Vertex must implement
-// to be used in the Dijkstra algorithm
-type Vertex struct {
-	Distance int
-}
+// Find the shortest path between two vertices in a graph.
+// Both the start and end vertices must be in the graph.
+func ShortestPath(g *Graph, start *Vertex, end *Vertex) ([]*Vertex, int) {
+	// Make sure the start and end vertices are in the graph
+	if _, ok := g.vertices[start]; !ok {
+		panic(fmt.Sprintf("Start vertex %v not in graph", start))
+	}
+	if _, ok := g.vertices[end]; !ok {
+		panic(fmt.Sprintf("End vertex %v not in graph", end))
+	}
 
-type NodeQueue struct {
-	Items []Vertex
-	Lock  sync.Mutex
-}
+	// // Set the start node distance to 0
+	// for v, _ := range g.vertices {
+	// 	v.Distance = math.MaxInt64
+	// }
+	// start.Distance = 0
 
-// Enqueue adds an Node to the end of the queue
-func (s *NodeQueue) Enqueue(t Vertex) {
-	s.Lock.Lock()
-	defer s.Lock.Unlock()
-	N := len(s.Items)
-	if N == 0 || t.Distance < s.Items[0].Distance {
-		// List is empty or t is smaller than the first element
-		// Insert at the beginning
-		s.Items = append([]Vertex{t}, s.Items...)
-	} else if t.Distance > s.Items[N-1].Distance {
-		// t is larger than the last element
-		s.Items = append(s.Items, t)
-	} else {
-		// Insert in distance order by bisecting the list
-		lo, hi := 0, N
-		for lo < hi {
-			mid := lo + (hi-lo)/2
-			if t.Distance < s.Items[mid].Distance {
-				hi = mid
-			} else {
-				lo = mid + 1
+	// Distance map
+	dist := make(map[*Vertex]int)
+	for v, _ := range g.vertices {
+		dist[v] = math.MaxInt64
+	}
+	dist[start] = 0
+
+	// Priority queue of nodes
+	pq := PriorityQueue[*Vertex]{}
+	pq.Enqueue(start, 0)
+
+	// Visited nodes
+	visited := make(map[*Vertex]bool)
+
+	// Previous node
+	prev := make(map[*Vertex]*Vertex)
+
+	for !pq.IsEmpty() {
+		v, _ := pq.Pop()
+		if visited[v] {
+			continue
+		}
+		visited[v] = true
+		near, ok := g.Edges[v]
+		if !ok {
+			// Graph consistantcy check
+			panic(fmt.Sprintf("Vertex %v not in graph", v))
+		}
+
+		for _, e := range near {
+			if !visited[e.Vertex] {
+				d := dist[v] + e.Weight
+				if d < dist[e.Vertex] {
+					dist[e.Vertex] = d
+					prev[e.Vertex] = v
+					pq.Enqueue(e.Vertex, d)
+				}
+				// visited[e.Vertex] = true
 			}
 		}
-		// Make room for the new element
-		s.Items = append(s.Items[:lo+1], s.Items[lo:]...)
-		// Insert the new element
-		s.Items[lo] = t
 	}
+
+	// Reconstruct the path
+	path_val := prev[end]
+	var path []*Vertex
+	path = append(path, end)
+	for path_val != start {
+		path = append(path, path_val)
+		path_val = prev[path_val]
+	}
+	path = append(path, path_val)
+
+	// Reverse the path
+	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
+		path[i], path[j] = path[j], path[i]
+	}
+	return path, dist[end]
 }
