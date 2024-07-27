@@ -16,5 +16,5 @@ func TestMapMap(t *testing.T) {
 		5: 12,
 	}
 	result := MapMap(m, func(n int) int { return n * 2 })
-	AssertEqualWithComparator(t, result, e, CompareMaps)
+	AssertEqualMaps(t, result, e)
 }

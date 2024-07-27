@@ -115,20 +115,20 @@ func TestDivisorsUpTo100(t *testing.T) {
 	}
 	for _, tc := range test_cases {
 		divisors := Divisors(tc.n)
-		AssertEqualWithComparator(t, divisors, tc.divisors, CompareArrays)
+		AssertEqualArrays(t, divisors, tc.divisors)
 	}
 }
 
 func TestDivisorsZero(t *testing.T) {
 	divisors := Divisors(0)
 	expected := []int{}
-	AssertEqualWithComparator(t, divisors, expected, CompareArrays)
+	AssertEqualArrays(t, divisors, expected)
 }
 
 func TestDivisorsNegative(t *testing.T) {
 	divisors := Divisors(-1)
 	expected := []int{}
-	AssertEqualWithComparator(t, divisors, expected, CompareArrays)
+	AssertEqualArrays(t, divisors, expected)
 }
 
 func TestDivisorsLarge(t *testing.T) {
@@ -141,6 +141,6 @@ func TestDivisorsLarge(t *testing.T) {
 
 	for _, tc := range test_cases {
 		divisors := Divisors(tc.n)
-		AssertEqualWithComparator(t, divisors, tc.divisors, CompareArrays)
+		AssertEqualArrays(t, divisors, tc.divisors)
 	}
 }

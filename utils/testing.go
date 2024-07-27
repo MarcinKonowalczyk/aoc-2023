@@ -33,6 +33,7 @@ func AssertNotEqual[T comparable](t *testing.T, a T, b T) {
 	}
 }
 
+// Assert that error is nil.
 func AssertNoError(t *testing.T, err error) {
 	if err != nil {
 		file, line := getParentInfo()
@@ -40,6 +41,7 @@ func AssertNoError(t *testing.T, err error) {
 	}
 }
 
+// Assert that an error is not nil.
 func AssertError(t *testing.T, err error) {
 	if err == nil {
 		file, line := getParentInfo()
@@ -47,6 +49,7 @@ func AssertError(t *testing.T, err error) {
 	}
 }
 
+// Compare two values using a custom comparator function.
 func AssertEqualWithComparator[T any](t *testing.T, a T, b T, comparator func(T, T) bool) {
 	if !comparator(a, b) {
 		file, line := getParentInfo()
@@ -88,4 +91,16 @@ func CompareMaps[T comparable, V comparable](a map[T]V, b map[T]V) bool {
 	// All keys of a exist in b, and a and b have the same length, hence they
 	// must have the same keys
 	return true
+}
+
+// Utility functions for comparing arrays. Equivalent to AssertEqualWithComparator
+// where the comparator is CompareArrays.
+func AssertEqualArrays[T comparable](t *testing.T, a []T, b []T) {
+	AssertEqualWithComparator(t, a, b, CompareArrays)
+}
+
+// Utility functions for comparing maps. Equivalent to AssertEqualWithComparator
+// where the comparator is CompareMaps.
+func AssertEqualMaps[T comparable, V comparable](t *testing.T, a map[T]V, b map[T]V) {
+	AssertEqualWithComparator(t, a, b, CompareMaps)
 }

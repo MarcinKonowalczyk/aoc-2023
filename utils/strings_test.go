@@ -18,7 +18,7 @@ func TestStringOfNumbersToInts(t *testing.T) {
 	for _, s := range candidates {
 		actual, err := StringOfNumbersToInts(s)
 		AssertNoError(t, err)
-		AssertEqualWithComparator(t, actual, expected, CompareArrays)
+		AssertEqualArrays(t, actual, expected)
 	}
 }
 
@@ -27,5 +27,5 @@ func TestStringOfNumbersToInts_2(t *testing.T) {
 	expected := []int{8234, -4234928394, 1982312389081, 0}
 	actual, err := StringOfNumbersToInts(s)
 	AssertNoError(t, err)
-	AssertEqualWithComparator(t, actual, expected, CompareArrays)
+	AssertEqualArrays(t, actual, expected)
 }
