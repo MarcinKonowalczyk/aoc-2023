@@ -7,7 +7,7 @@ import (
 
 // Find the shortest path between two vertices in a graph.
 // Both the start and end vertices must be in the graph.
-func ShortestPath(g *Graph, start *Vertex, end *Vertex) ([]*Vertex, int) {
+func ShortestPath(g *Graph, start Vertex, end Vertex) ([]Vertex, int) {
 	// Make sure the start and end vertices are in the graph
 	if _, ok := g.vertices[start]; !ok {
 		panic(fmt.Sprintf("Start vertex %v not in graph", start))
@@ -23,21 +23,21 @@ func ShortestPath(g *Graph, start *Vertex, end *Vertex) ([]*Vertex, int) {
 	// start.Distance = 0
 
 	// Distance map
-	dist := make(map[*Vertex]int)
+	dist := make(map[Vertex]int)
 	for v, _ := range g.vertices {
 		dist[v] = math.MaxInt64
 	}
 	dist[start] = 0
 
 	// Priority queue of nodes
-	pq := PriorityQueue[*Vertex]{}
+	pq := PriorityQueue[Vertex]{}
 	pq.Enqueue(start, 0)
 
 	// Visited nodes
-	visited := make(map[*Vertex]bool)
+	visited := make(map[Vertex]bool)
 
 	// Previous node
-	prev := make(map[*Vertex]*Vertex)
+	prev := make(map[Vertex]Vertex)
 
 	for !pq.IsEmpty() {
 		v, _ := pq.Pop()
@@ -52,12 +52,12 @@ func ShortestPath(g *Graph, start *Vertex, end *Vertex) ([]*Vertex, int) {
 		}
 
 		for _, e := range near {
-			if !visited[e.Vertex] {
-				d := dist[v] + e.Weight
-				if d < dist[e.Vertex] {
-					dist[e.Vertex] = d
-					prev[e.Vertex] = v
-					pq.Enqueue(e.Vertex, d)
+			if !visited[e.from] {
+				d := dist[v] + e.weight
+				if d < dist[e.from] {
+					dist[e.from] = d
+					prev[e.from] = v
+					pq.Enqueue(e.from, d)
 				}
 				// visited[e.Vertex] = true
 			}
@@ -66,7 +66,7 @@ func ShortestPath(g *Graph, start *Vertex, end *Vertex) ([]*Vertex, int) {
 
 	// Reconstruct the path
 	path_val := prev[end]
-	var path []*Vertex
+	var path []Vertex
 	path = append(path, end)
 	for path_val != start {
 		path = append(path, path_val)

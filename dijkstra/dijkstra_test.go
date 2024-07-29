@@ -7,9 +7,9 @@ import (
 
 func TestDjkstra_ABC_Line(t *testing.T) {
 	g := Graph{}
-	vA := NewVertex()
-	vB := NewVertex()
-	vC := NewVertex()
+	vA := Vertex(1)
+	vB := Vertex(2)
+	vC := Vertex(3)
 	g.AddVertex(vA)
 	g.AddVertex(vB)
 	g.AddVertex(vC)
@@ -18,14 +18,14 @@ func TestDjkstra_ABC_Line(t *testing.T) {
 
 	path, distande := ShortestPath(&g, vA, vC)
 	utils.AssertEqual(t, distande, 3)
-	utils.AssertEqualArrays(t, path, []*Vertex{vA, vB, vC})
+	utils.AssertEqualArrays(t, path, []Vertex{vA, vB, vC})
 }
 
 func TestDjkstra_ABC_Cycle(t *testing.T) {
 	g := Graph{}
-	vA := NewVertex()
-	vB := NewVertex()
-	vC := NewVertex()
+	vA := Vertex(1)
+	vB := Vertex(2)
+	vC := Vertex(3)
 	g.AddVertex(vA)
 	g.AddVertex(vB)
 	g.AddVertex(vC)
@@ -35,18 +35,18 @@ func TestDjkstra_ABC_Cycle(t *testing.T) {
 
 	path, distande := ShortestPath(&g, vA, vC)
 	utils.AssertEqual(t, distande, 2)
-	utils.AssertEqualArrays(t, path, []*Vertex{vA, vC})
+	utils.AssertEqualArrays(t, path, []Vertex{vA, vC})
 }
 
 func TestDjkstra_LargerCase(t *testing.T) {
 	// This is the graph from the wikipedia page on Dijkstra's algorithm
 	g := Graph{}
-	vA := NewVertex()
-	vB := NewVertex()
-	vC := NewVertex()
-	vD := NewVertex()
-	vE := NewVertex()
-	vF := NewVertex()
+	vA := Vertex(1)
+	vB := Vertex(2)
+	vC := Vertex(3)
+	vD := Vertex(4)
+	vE := Vertex(5)
+	vF := Vertex(6)
 
 	g.AddVertex(vA)
 	g.AddVertex(vB)
@@ -67,5 +67,5 @@ func TestDjkstra_LargerCase(t *testing.T) {
 
 	path, distande := ShortestPath(&g, vA, vE)
 	utils.AssertEqual(t, distande, 20)
-	utils.AssertEqualArrays(t, path, []*Vertex{vA, vC, vD, vE})
+	utils.AssertEqualArrays(t, path, []Vertex{vA, vC, vD, vE})
 }
