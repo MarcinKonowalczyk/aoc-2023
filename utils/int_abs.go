@@ -51,3 +51,15 @@ func SignBinary2[T Integer](a, b T) int {
 	}
 	return 1
 }
+
+func AbsDiffAndSignTernary[T Integer](a, b T) (T, int) {
+	diff := AbsDiff(a, b)
+	sign := SignTernary2(a, b)
+	return diff, sign
+}
+
+func AbsDiffAndSignBinary[T Integer](a, b T) (T, int) {
+	diff := AbsDiff(a, b)
+	sign := SignBinary2(a, b)
+	return diff, sign
+}

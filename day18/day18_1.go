@@ -3,8 +3,6 @@ package day18
 import (
 	"aoc2023/utils"
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 func Main(part int, lines []string) (n int, err error) {
@@ -23,111 +21,168 @@ func main_1(lines []string) (n int, err error) {
 		return 0, err
 	}
 
+	tg := turtle_grid{}
+	tg.addPoint(utils.Point2{X: 0, Y: 0})
+
 	for _, l := range parsed_lines {
 		fmt.Println(l)
+		tg.move(l.dir, l.distance)
 	}
+
+	if !tg.isLoop() {
+		return 0, fmt.Errorf("path does not loop")
+	}
+
 	return 0, nil
 }
 
-type direction byte
-
-const (
-	RIGHT direction = iota
-	DOWN
-	LEFT
-	UP
-)
-
-type rgb struct {
-	r uint8
-	g uint8
-	b uint8
-}
-type line struct {
-	dir      direction
-	distance uint
-	color    rgb
+type turtle_grid struct {
+	grid  [][]bool
+	min_x int
+	min_y int
+	max_x int
+	max_y int
+	path  []utils.Point2
 }
 
-func parseLine(s string) (l line, err error) {
-	parts := strings.Split(s, " ")
-	if len(parts) != 3 {
-		return l, fmt.Errorf("invalid line")
+func (tg *turtle_grid) addPoint(p utils.Point2) error {
+	if tg.grid == nil {
+		tg.grid = make([][]bool, 0)
+		tg.min_x = 0
+		tg.min_y = 0
+		tg.max_x = 0
+		tg.max_y = 0
 	}
-	dir := parts[0]
-	if len(dir) != 1 {
-		return l, fmt.Errorf("invalid direction")
+	if tg.path == nil {
+		tg.path = make([]utils.Point2, 0)
 	}
+
+	// Expand grid if necessary
+
+	if p.X >= tg.max_x {
+		// Need to expand to the right
+		pad_x := p.X - tg.max_x + 1
+		for i := range tg.grid {
+			tg.grid[i] = append(tg.grid[i], make([]bool, pad_x)...)
+		}
+		tg.max_x = p.X
+	}
+	if p.X < tg.min_x {
+		// Need to expand to the left
+		pad_x := tg.min_x - p.X
+		for i := range tg.grid {
+			tg.grid[i] = append(make([]bool, pad_x), tg.grid[i]...)
+		}
+		tg.min_x = p.X
+	}
+	if p.Y >= tg.max_y {
+		// Need to expand down
+		pad_y := p.Y - tg.max_y + 1
+		for i := 0; i < pad_y; i++ {
+			tg.grid = append(tg.grid, make([]bool, tg.max_x-tg.min_x+1))
+		}
+		tg.max_y = p.Y
+	}
+	if p.Y < tg.min_y {
+		// Need to expand up
+		pad_y := tg.min_y - p.Y
+		for i := 0; i < pad_y; i++ {
+			new_row := make([]bool, tg.max_x-tg.min_x+1)
+			for j := range new_row {
+				new_row[j] = false
+			}
+			tg.grid = append([][]bool{new_row}, tg.grid...)
+			// tg.grid = append(make([][]bool, 1), tg.grid...)
+		}
+		tg.min_y = p.Y
+	}
+
+	if len(tg.path) == 0 {
+		// First point
+		tg.path = append(tg.path, p)
+		tg.grid[p.Y][p.X] = true
+		tg.min_x = p.X
+		tg.min_y = p.Y
+		tg.max_x = p.X
+		tg.max_y = p.Y
+	} else {
+		prev_p := tg.path[len(tg.path)-1]
+		if prev_p.X == p.X { // Vertical line
+			abs_diff, sign := utils.AbsDiffAndSignBinary(p.Y, prev_p.Y)
+			for d := 1; d <= abs_diff; d++ {
+				p := utils.Point2{X: p.X, Y: prev_p.Y + d*sign}
+				p.X -= tg.min_x
+				p.Y -= tg.min_y
+				tg.grid[p.Y][p.X] = true
+			}
+		} else if prev_p.Y == p.Y { // Horizontal line
+			abs_diff, sign := utils.AbsDiffAndSignBinary(p.X, prev_p.X)
+			for d := 1; d <= abs_diff; d++ {
+				p := utils.Point2{X: prev_p.X + d*sign, Y: p.Y}
+				p.X -= tg.min_x
+				p.Y -= tg.min_y
+				tg.grid[p.Y][p.X] = true
+			}
+		} else {
+			return fmt.Errorf("invalid path")
+		}
+		// Actually append the point
+		tg.path = append(tg.path, p)
+	}
+
+	return nil
+}
+
+func (tg *turtle_grid) move(dir direction, distance uint) {
+	if len(tg.path) == 0 {
+		return
+	}
+
+	prev_p := tg.path[len(tg.path)-1]
+	var new_p utils.Point2
 	switch dir {
-	case "R":
-		l.dir = RIGHT
-	case "D":
-		l.dir = DOWN
-	case "L":
-		l.dir = LEFT
-	case "U":
-		l.dir = UP
-	default:
-		return l, fmt.Errorf("invalid direction")
-	}
-	distance, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return l, fmt.Errorf("invalid distance")
-	}
-	if distance < 0 {
-		return l, fmt.Errorf("invalid distance")
-	}
-	l.distance = uint(distance)
-	rgbhex := parts[2]
-	if rgbhex[0] == '(' {
-		rgbhex = rgbhex[1:]
-	}
-	if rgbhex[len(rgbhex)-1] == ')' {
-		rgbhex = rgbhex[:len(rgbhex)-1]
+	case RIGHT:
+		new_p = utils.Point2{X: prev_p.X + int(distance), Y: prev_p.Y}
+	case DOWN:
+		new_p = utils.Point2{X: prev_p.X, Y: prev_p.Y + int(distance)}
+	case LEFT:
+		new_p = utils.Point2{X: prev_p.X - int(distance), Y: prev_p.Y}
+	case UP:
+		new_p = utils.Point2{X: prev_p.X, Y: prev_p.Y - int(distance)}
 	}
 
-	l.color, err = parseColor(rgbhex)
-	if err != nil {
-		return l, err
-	}
-
-	return l, nil
+	tg.addPoint(new_p)
 }
 
-func parseColor(s string) (c rgb, err error) {
-	if s[0] != '#' {
-		return c, fmt.Errorf("invalid hex")
+func (tg turtle_grid) String() string {
+	s := ""
+	for y := tg.min_y; y <= tg.max_y; y++ {
+		for x := tg.min_x; x <= tg.max_x; x++ {
+			xx := x - tg.min_x
+			yy := y - tg.min_y
+			if tg.grid[yy][xx] {
+				s += "#"
+			} else {
+				s += "."
+			}
+		}
+		if y < tg.max_y {
+			s += "\n"
+		}
 	}
-	if len(s) != 7 {
-		return c, fmt.Errorf("invalid hex")
+	return s
+}
+
+// Check if the path loops back on itself
+func (tg *turtle_grid) isLoop() bool {
+	if len(tg.path) < 4 {
+		return false
 	}
-	s = s[1:]
-	r := s[:2]
-	g := s[2:4]
-	b := s[4:]
-	r_int, err := strconv.ParseInt(r, 16, 64)
-	if err != nil {
-		return c, err
+
+	// Check if the last point is the same as the first point
+	if tg.path[0].X != tg.path[len(tg.path)-1].X || tg.path[0].Y != tg.path[len(tg.path)-1].Y {
+		return false
 	}
-	if r_int < 0 || r_int > 255 {
-		return c, fmt.Errorf("invalid r")
-	}
-	c.r = uint8(r_int)
-	g_int, err := strconv.ParseInt(g, 16, 64)
-	if g_int < 0 || g_int > 255 {
-		return c, fmt.Errorf("invalid g")
-	}
-	if err != nil {
-		return c, err
-	}
-	c.g = uint8(g_int)
-	b_int, err := strconv.ParseInt(b, 16, 64)
-	if b_int < 0 || b_int > 255 {
-		return c, fmt.Errorf("invalid b")
-	}
-	if err != nil {
-		return c, err
-	}
-	c.b = uint8(b_int)
-	return c, nil
+
+	return true
 }
