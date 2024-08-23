@@ -24,23 +24,23 @@ func main_1(lines []string) (n int, err error) {
 
 	cell_mapping := createCellMapping(g)
 
-	// fmt.Println("Cell mapping:", cell_mapping)
-	gr := createGraph(cell_mapping, g)
+	gr, err := createGraph(cell_mapping, g, 1, 3)
+	if err != nil {
+		return -1, err
+	}
 
-	// fmt.Println("Graph:", gr)
 	path, distance := dijkstra.ShortestPath(gr, cell_mapping[0][0][0], cell_mapping[g.rows-1][g.cols-1][0])
+
+	checkPath(path, g.rows, g.cols, 1, 3)
 
 	index_path := pathToIndexPath(path, g.rows, g.cols)
 
-	// fmt.Println("Path:", index_path)
-
 	costs := costPath(index_path, g)
 
-	sum_costs := utils.ArraySum(costs)
+	sum_costs := utils.ArraySum(utils.ArrayMap(costs, func(c uint8) int { return int(c) }))
 
-	// fmt.Println("Costs:", costs)
 	fmt.Println("sum_costs:", sum_costs)
-	if sum_costs != uint8(distance) {
+	if sum_costs != distance {
 		panic(fmt.Sprintf("sum_costs (%d) != distance (%d)", sum_costs, distance))
 	}
 
@@ -50,9 +50,6 @@ func main_1(lines []string) (n int, err error) {
 
 	return 0, nil
 }
-
-// actual 859
-// 861 is too high
 
 type grid struct {
 	cost [][]uint8
@@ -157,7 +154,21 @@ func createCellMapping(g grid) [][][]dijkstra.Vertex {
 	return mapping
 }
 
-func createGraph(cell_mapping [][][]dijkstra.Vertex, g grid) *dijkstra.Graph {
+func createGraph(
+	cell_mapping [][][]dijkstra.Vertex,
+	g grid,
+	min int,
+	max int,
+) (*dijkstra.Graph, error) {
+
+	if min < 1 || max < 1 {
+		return nil, fmt.Errorf("min and max must be at least 1")
+	}
+
+	if min > max {
+		return nil, fmt.Errorf("min must be less than or equal to max")
+	}
+
 	gr := dijkstra.Graph{}
 	// Add each cell as a vertex
 	for i := 0; i < g.rows; i++ {
@@ -181,7 +192,7 @@ func createGraph(cell_mapping [][][]dijkstra.Vertex, g grid) *dijkstra.Graph {
 	for i := 0; i < g.rows; i++ { // for each row
 		for j := 0; j < g.cols; j++ { // for each column
 			// fmt.Println("Adding 0->1 edges for", i, j)
-			for d := 1; d <= 3; d++ { // for each possible move distance
+			for d := min; d <= max; d++ { // for each possible move distance
 				// Right move
 				if j+d < g.cols {
 					cost := 0
@@ -212,7 +223,7 @@ func createGraph(cell_mapping [][][]dijkstra.Vertex, g grid) *dijkstra.Graph {
 	for i := 0; i < g.rows; i++ { // for each row
 		for j := 0; j < g.cols; j++ { // for each column
 			// fmt.Println("Adding 1->0 edges for", i, j)
-			for d := 1; d <= 3; d++ { // for each possible move distance
+			for d := min; d <= max; d++ { // for each possible move distance
 				// Down move
 				if i+d < g.rows {
 					cost := 0
@@ -245,16 +256,14 @@ func createGraph(cell_mapping [][][]dijkstra.Vertex, g grid) *dijkstra.Graph {
 	gr.AddUndirectedEdge(cell_mapping[0][0][0], cell_mapping[0][0][1], 0)
 	gr.AddUndirectedEdge(cell_mapping[g.rows-1][g.cols-1][1], cell_mapping[g.rows-1][g.cols-1][0], 0)
 
-	return &gr
+	return &gr, nil
 }
 
-func pathToIndexPath(path []dijkstra.Vertex, rows, cols int) []utils.Point {
+func checkPath(path []dijkstra.Vertex, rows, cols int, min, max int) {
 	// Check that all the moves are correct
 	// Except for the top left and bottom right corners, all moves should be to the right or down
 	// Plane 0 should only move to plane 1 and right
 	// Plane 1 should only move to plane 0 and down
-	index_path := make([]utils.Point, 0)
-
 	for i := 0; i < len(path)-1; i++ {
 		// fmt.Printf("Checking move %d (h%d -> h%d)\n", i, path[i], path[i+1])
 		ii1, jj1, kk1 := h_to_ijk(int(path[i]), cols)
@@ -270,26 +279,47 @@ func pathToIndexPath(path []dijkstra.Vertex, rows, cols int) []utils.Point {
 		}
 		if kk1 == 0 && kk2 == 1 {
 			// Were on plane 0 and moving to plane 1
-			diff := jj2 - jj1
-			if ii1 != ii2 || diff == 0 || diff > 3 || diff < -3 {
-				panic(fmt.Sprintf("Invalid 0->1 move from %d,%d to %d,%d but should be right", jj1, ii1, jj2, ii2))
+			abs_diff := utils.AbsDiff(jj1, jj2)
+			prefix := fmt.Sprintf("Invalid 0->1 move from %d,%d to %d,%d: ", jj1, ii1, jj2, ii2)
+			if ii1 != ii2 {
+				panic(fmt.Sprintf("%sShould be down but is not", prefix))
+			}
+			if abs_diff < min {
+				panic(fmt.Sprintf("%sMove is too short (%d < %d)", prefix, abs_diff, min))
+			}
+			if abs_diff > max {
+				panic(fmt.Sprintf("%sMove is too long (%d > %d)", prefix, abs_diff, max))
 			}
 		} else if kk1 == 1 && kk2 == 0 {
 			// Were on plane 1 and moving to plane 0
-			diff := ii2 - ii1
-			if jj1 != jj2 || diff == 0 || diff > 3 || diff < -3 {
-				panic(fmt.Sprintf("Invalid 1->0 move from %d,%d to %d,%d but should be down", jj1, ii1, jj2, ii2))
+			abs_diff := utils.AbsDiff(ii1, ii2)
+			prefix := fmt.Sprintf("Invalid 1->0 move from %d,%d to %d,%d: ", jj1, ii1, jj2, ii2)
+			if jj1 != jj2 {
+				panic(fmt.Sprintf("%sShould be right but is not", prefix))
+			}
+			if abs_diff < min {
+				panic(fmt.Sprintf("%sMove is too short (%d < %d)", prefix, abs_diff, min))
+			}
+			if abs_diff > max {
+				panic(fmt.Sprintf("%sMove is too long (%d > %d)", prefix, abs_diff, max))
 			}
 		} else {
 			panic(fmt.Sprintf("Invalid move from plane %d to plane %d (should be 0->1 or 1->0)", kk1, kk2))
 		}
+	}
+}
 
-		index_path = append(index_path, utils.Point{X: jj2, Y: ii2})
+func pathToIndexPath(path []dijkstra.Vertex, rows, cols int) []utils.Point2 {
+	index_path := make([]utils.Point2, 0)
+
+	for i := 0; i < len(path)-1; i++ {
+		ii2, jj2, _ := h_to_ijk(int(path[i+1]), cols)
+		index_path = append(index_path, utils.Point2{X: jj2, Y: ii2})
 	}
 
 	// Add the last point
 	ii, jj, _ := h_to_ijk(int(path[len(path)-1]), cols)
-	index_path = append(index_path, utils.Point{X: jj, Y: ii})
+	index_path = append(index_path, utils.Point2{X: jj, Y: ii})
 
 	// Deduplicate first point
 	if len(index_path) > 1 && index_path[0].X == index_path[1].X && index_path[0].Y == index_path[1].Y {
@@ -303,14 +333,14 @@ func pathToIndexPath(path []dijkstra.Vertex, rows, cols int) []utils.Point {
 
 	// Add {0,0} if the first point is not {0,0}
 	if index_path[0].X != 0 || index_path[0].Y != 0 {
-		index_path = append([]utils.Point{{X: 0, Y: 0}}, index_path...)
+		index_path = append([]utils.Point2{{X: 0, Y: 0}}, index_path...)
 	}
 
 	return index_path
 }
 
 // Get the list of costs along the path
-func costPath(index_path []utils.Point, g grid) []uint8 {
+func costPath(index_path []utils.Point2, g grid) []uint8 {
 	costs := make([]uint8, 0)
 	// Walk from point to point and sum the costs
 	for i := 0; i < len(index_path)-1; i++ {
@@ -318,27 +348,17 @@ func costPath(index_path []utils.Point, g grid) []uint8 {
 		p2 := index_path[i+1]
 		if p1.X == p2.X {
 			// Move left or right
-			delta := p2.Y - p1.Y
-			abs_delta := delta
-			sign_delta := 1
-			if delta < 0 {
-				abs_delta = -delta
-				sign_delta = -1
-			}
-			for j := 1; j < abs_delta+1; j++ {
-				costs = append(costs, g.cost[p1.Y+sign_delta*j][p1.X])
+			abs_diff := utils.AbsDiff(p1.Y, p2.Y)
+			sign_diff := utils.SignBinary2(p2.Y, p1.Y)
+			for j := 1; j < abs_diff+1; j++ {
+				costs = append(costs, g.cost[p1.Y+sign_diff*j][p1.X])
 			}
 		} else if p1.Y == p2.Y {
 			// Move up or down
-			delta := p2.X - p1.X
-			abs_delta := delta
-			sign_delta := 1
-			if delta < 0 {
-				abs_delta = -delta
-				sign_delta = -1
-			}
-			for j := 1; j < abs_delta+1; j++ {
-				costs = append(costs, g.cost[p1.Y][p1.X+sign_delta*j])
+			abs_diff := utils.AbsDiff(p1.X, p2.X)
+			sign_diff := utils.SignBinary2(p2.X, p1.X)
+			for j := 1; j < abs_diff+1; j++ {
+				costs = append(costs, g.cost[p1.Y][p1.X+sign_diff*j])
 			}
 		} else {
 			panic(fmt.Sprintf("Invalid move from %v to %v", p1, p2))
@@ -348,7 +368,7 @@ func costPath(index_path []utils.Point, g grid) []uint8 {
 	return costs
 }
 
-func printGridWithPath(g grid, index_path []utils.Point) {
+func printGridWithPath(g grid, index_path []utils.Point2) {
 	// Print the grid, with the path marked by X
 	to_print := make([][]byte, g.rows)
 	for i := 0; i < g.rows; i++ {
@@ -363,31 +383,19 @@ func printGridWithPath(g grid, index_path []utils.Point) {
 		p2 := index_path[i+1]
 		if p1.X == p2.X {
 			// Move up or down
-			delta := p2.Y - p1.Y
-			abs_delta := delta
-			sign_delta := 1
-			s := byte('v')
-			if delta < 0 {
-				abs_delta = -delta
-				sign_delta = -1
-				s = byte('^')
-			}
-			for j := 1; j < abs_delta+1; j++ {
-				to_print[p1.Y+sign_delta*j][p1.X] = s
+			abs_diff := utils.AbsDiff(p1.Y, p2.Y)
+			sign_diff := utils.SignBinary2(p2.Y, p1.Y)
+			s := byte(utils.Ternary(sign_diff > 0, 'v', '^'))
+			for j := 1; j < abs_diff+1; j++ {
+				to_print[p1.Y+sign_diff*j][p1.X] = s
 			}
 		} else if p1.Y == p2.Y {
 			// Move left or right
-			delta := p2.X - p1.X
-			abs_delta := delta
-			sign_delta := 1
-			s := byte('>')
-			if delta < 0 {
-				abs_delta = -delta
-				sign_delta = -1
-				s = byte('<')
-			}
-			for j := 1; j < abs_delta+1; j++ {
-				to_print[p1.Y][p1.X+sign_delta*j] = s
+			abs_diff := utils.AbsDiff(p1.X, p2.X)
+			sign_diff := utils.SignBinary2(p2.X, p1.X)
+			s := byte(utils.Ternary(sign_diff > 0, '>', '<'))
+			for j := 1; j < abs_diff+1; j++ {
+				to_print[p1.Y][p1.X+sign_diff*j] = s
 			}
 
 		} else {

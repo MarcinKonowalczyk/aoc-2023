@@ -58,11 +58,11 @@ func main_2(lines []string) (n int, err error) {
 
 type gear struct {
 	// position of the gear
-	center utils.Point
+	center utils.Point2
 	// position somewhere in the adjacent number 1
-	number1 utils.Point
+	number1 utils.Point2
 	// position somewhere in the adjacent number 2
-	number2 utils.Point
+	number2 utils.Point2
 }
 
 func yieldGears(g grid, messages chan *gear) {
@@ -85,7 +85,7 @@ func yieldGears(g grid, messages chan *gear) {
 					// fmt.Println("found gear at", i, j)
 					// fmt.Println("numbers:", numbers)
 					messages <- &gear{
-						center:  utils.NewPoint(j, i),
+						center:  utils.Point2{X: j, Y: i},
 						number1: numbers[0],
 						number2: numbers[1],
 					}
@@ -98,33 +98,33 @@ func yieldGears(g grid, messages chan *gear) {
 
 // Return a list of points around the given point. Origin is at teh center of the
 // grid.
-func numbersAround(g grid) []utils.Point {
+func numbersAround(g grid) []utils.Point2 {
 	N_rows, N_cols := gridToNRowsAndNCols(g)
 	if N_rows != 3 || N_cols != 3 {
 		panic("invalid grid")
 	}
-	numbers := make([]utils.Point, 0)
+	numbers := make([]utils.Point2, 0)
 
 	// First row
 	points := pointsInARow(g[0])
 	for _, p := range points {
-		numbers = append(numbers, utils.NewPoint(p, -1))
+		numbers = append(numbers, utils.Point2{X: p, Y: -1})
 	}
 
 	// Second row
 	if isNumber(g[1][0]) {
 		// Number to the left
-		numbers = append(numbers, utils.NewPoint(-1, 0))
+		numbers = append(numbers, utils.Point2{X: -1, Y: 0})
 	}
 	if isNumber(g[1][2]) {
 		// Number to the right
-		numbers = append(numbers, utils.NewPoint(1, 0))
+		numbers = append(numbers, utils.Point2{X: 1, Y: 0})
 	}
 
 	// Third row
 	points = pointsInARow(g[2])
 	for _, p := range points {
-		numbers = append(numbers, utils.NewPoint(p, 1))
+		numbers = append(numbers, utils.Point2{X: p, Y: 1})
 	}
 
 	return numbers
@@ -168,7 +168,7 @@ func pointsInARow(row []byte) []int {
 	return numbers
 }
 
-func chaseNumber(g grid, somewhere utils.Point) (int, error) {
+func chaseNumber(g grid, somewhere utils.Point2) (int, error) {
 	N_rows, N_cols := gridToNRowsAndNCols(g)
 	if N_rows == 0 || N_cols == 0 {
 		panic("invalid grid")

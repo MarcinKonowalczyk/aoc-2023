@@ -28,14 +28,14 @@ func main_1(lines []string) (n int, err error) {
 }
 
 type Universe struct {
-	galaxies   []utils.Point
+	galaxies   []utils.Point2
 	empty_rows []int
 	empty_cols []int
 	width      int
 	height     int
 }
 
-func (u Universe) HasGalaxyAt(p utils.Point) bool {
+func (u Universe) HasGalaxyAt(p utils.Point2) bool {
 	for _, g := range u.galaxies {
 		if g == p {
 			return true
@@ -72,7 +72,7 @@ func parseLinesToUniverse(lines []string) (u Universe) {
 
 	for y, line := range lines {
 		for x, c := range line {
-			p := utils.NewPoint(x, y)
+			p := utils.Point2{X: x, Y: y}
 			if c == '#' {
 				u.galaxies = append(u.galaxies, p)
 			}
@@ -102,7 +102,7 @@ func parseLinesToUniverse(lines []string) (u Universe) {
 	return u
 }
 
-func findManhattanDistance(g1, g2 utils.Point, empty_rows, empty_cols []int, expansion_factor int) int {
+func findManhattanDistance(g1, g2 utils.Point2, empty_rows, empty_cols []int, expansion_factor int) int {
 	dx := find1DDistance(g1.X, g2.X, empty_cols, expansion_factor)
 	dy := find1DDistance(g1.Y, g2.Y, empty_rows, expansion_factor)
 	return dx + dy
@@ -140,10 +140,10 @@ func find1DDistance(v1, v2 int, empties []int, expansion_factor int) int {
 }
 
 type GalaxyPair struct {
-	g1, g2 utils.Point
+	g1, g2 utils.Point2
 }
 
-func NewGalaxyPair(g1, g2 utils.Point) GalaxyPair {
+func NewGalaxyPair(g1, g2 utils.Point2) GalaxyPair {
 	// Sort galaxies by x coordinate. If they are the same, sort them by y. If
 	// they are still the same, the order doesn't matter.
 	if g1.X > g2.X {
