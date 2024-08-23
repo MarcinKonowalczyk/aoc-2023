@@ -19,6 +19,7 @@ import (
 	"aoc2023/day16"
 	"aoc2023/day17"
 	"aoc2023/day18"
+	"aoc2023/utils"
 	"errors"
 	"flag"
 	"fmt"
@@ -189,6 +190,9 @@ func main() {
 
 	fmt.Printf("Return value: %d\n", value)
 	fmt.Printf("Execution time: %v\n", toc.Sub(tic))
+
+	_ = utils.CopyToClipboard(fmt.Sprintf("%d", value))
+
 }
 
 // https://stackoverflow.com/a/53069799/2531987
