@@ -50,32 +50,32 @@ func TestDijkstra_BuildGraph(t *testing.T) {
 	expected_vertices := []Vertex{vA, vB, vC, vD}
 	utils.AssertEqualArraysUnordered(t, g.Vertices(), expected_vertices)
 
-	g.AddEdge(vA, vB, 1)
+	g.AddUndirectedEdge(vA, vB, 1)
 	assertEqualEdgeMaps(t, g.Edges, map[Vertex][]*Edge{
-		vA: {{vB, 1}},
-		vB: {{vA, 1}},
+		vA: {{vA, vB, 1}},
+		vB: {{vB, vA, 1}},
 	})
 
-	g.AddEdge(vA, vC, 2)
+	g.AddUndirectedEdge(vA, vC, 2)
 	assertEqualEdgeMaps(t, g.Edges, map[Vertex][]*Edge{
-		vA: {{vB, 1}, {vC, 2}},
-		vB: {{vA, 1}},
-		vC: {{vA, 2}},
+		vA: {{vA, vB, 1}, {vA, vC, 2}},
+		vB: {{vB, vA, 1}},
+		vC: {{vC, vA, 2}},
 	})
 
-	g.AddEdge(vB, vC, 3)
+	g.AddUndirectedEdge(vB, vC, 3)
 	assertEqualEdgeMaps(t, g.Edges, map[Vertex][]*Edge{
-		vA: {{vB, 1}, {vC, 2}},
-		vB: {{vA, 1}, {vC, 3}},
-		vC: {{vA, 2}, {vB, 3}},
+		vA: {{vA, vB, 1}, {vA, vC, 2}},
+		vB: {{vB, vA, 1}, {vB, vC, 3}},
+		vC: {{vC, vA, 2}, {vC, vB, 3}},
 	})
 
-	g.AddEdge(vC, vD, 4)
+	g.AddUndirectedEdge(vC, vD, 4)
 	assertEqualEdgeMaps(t, g.Edges, map[Vertex][]*Edge{
-		vA: {{vB, 1}, {vC, 2}},
-		vB: {{vA, 1}, {vC, 3}},
-		vC: {{vA, 2}, {vB, 3}, {vD, 4}},
-		vD: {{vC, 4}},
+		vA: {{vA, vB, 1}, {vA, vC, 2}},
+		vB: {{vB, vA, 1}, {vB, vC, 3}},
+		vC: {{vC, vA, 2}, {vC, vB, 3}, {vC, vD, 4}},
+		vD: {{vD, vC, 4}},
 	})
 }
 
@@ -97,11 +97,11 @@ func TestDijkstra_AddExistingEdge(t *testing.T) {
 
 	g.AddVertex(vA)
 	g.AddVertex(vB)
-	g.AddEdge(vA, vB, 1)
-	g.AddEdge(vA, vB, 2)
+	g.AddUndirectedEdge(vA, vB, 1)
+	g.AddUndirectedEdge(vA, vB, 2)
 
 	assertEqualEdgeMaps(t, g.Edges, map[Vertex][]*Edge{
-		vA: {{vB, 1}, {vB, 2}},
-		vB: {{vA, 1}, {vA, 2}},
+		vA: {{vA, vB, 1}, {vA, vB, 2}},
+		vB: {{vB, vA, 1}, {vB, vA, 2}},
 	})
 }

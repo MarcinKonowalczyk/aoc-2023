@@ -12,14 +12,14 @@ func TestArrayReduce(t *testing.T) {
 
 func TestMinArray(t *testing.T) {
 	arr := []int{1, 2, 3, 4, 5}
-	result, idx, _ := MinArray(arr)
+	result, idx, _ := ArrayMin(arr)
 	AssertEqual(t, result, 1)
 	AssertEqual(t, idx, 0)
 }
 
 func TestMaxArray(t *testing.T) {
 	arr := []int{1, 2, 3, 4, 5}
-	result, idx, _ := MaxArray(arr)
+	result, idx, _ := ArrayMax(arr)
 	AssertEqual(t, result, 5)
 	AssertEqual(t, idx, 4)
 }
