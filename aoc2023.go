@@ -25,6 +25,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -124,6 +125,7 @@ func main() {
 	}
 
 	var value int
+	tic := time.Now()
 	switch day {
 	case 1:
 		value, err = day01.Main(part, lines)
@@ -178,12 +180,14 @@ func main() {
 	default:
 		stopf("Day %d is not implemented yet", day)
 	}
+	toc := time.Now()
 
 	if err != nil {
 		stopf("Error when running main. Error: %s", err)
 	}
 
 	fmt.Printf("Return value: %d\n", value)
+	fmt.Printf("Execution time: %v\n", toc.Sub(tic))
 }
 
 // https://stackoverflow.com/a/53069799/2531987
