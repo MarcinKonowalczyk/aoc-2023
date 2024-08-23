@@ -9,6 +9,14 @@ func (p Point2) Add(p2 Point2) Point2 {
 	return Point2{p.X + p2.X, p.Y + p2.Y}
 }
 
+func (p Point2) AddX(x int) Point2 {
+	return Point2{p.X + x, p.Y}
+}
+
+func (p Point2) AddY(y int) Point2 {
+	return Point2{p.X, p.Y + y}
+}
+
 func (p Point2) Sub(p2 Point2) Point2 {
 	return Point2{p.X - p2.X, p.Y - p2.Y}
 }
