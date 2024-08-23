@@ -4,7 +4,7 @@ import "sync"
 
 type queueItem[T any] struct {
 	value    T
-	distance int
+	priority int
 }
 
 type PriorityQueue[T any] struct {
@@ -27,21 +27,21 @@ func (pq *PriorityQueue[T]) Enqueue(t T, d int) {
 	pq.lock.Lock()
 	defer pq.lock.Unlock()
 	N := len(pq.items)
-	new_item := queueItem[T]{value: t, distance: d}
-	if N == 0 || d < pq.items[0].distance {
+	new_item := queueItem[T]{value: t, priority: d}
+	if N == 0 || d < pq.items[0].priority {
 		// List is empty or t is smaller than the first element
 		// Insert at the beginning
 		// pq.items = append([]*Vertex{t}, pq.Items...)
 		pq.items = append([]queueItem[T]{new_item}, pq.items...)
-	} else if d > pq.items[N-1].distance {
+	} else if d > pq.items[N-1].priority {
 		// t is larger than the last element
 		pq.items = append(pq.items, new_item)
 	} else {
-		// Insert in distance order by bisecting the list
+		// Insert in priority order by bisecting the list
 		lo, hi := 0, N
 		for lo < hi {
 			mid := lo + (hi-lo)/2
-			if d < pq.items[mid].distance {
+			if d < pq.items[mid].priority {
 				hi = mid
 			} else {
 				lo = mid + 1
@@ -60,7 +60,7 @@ func (pq *PriorityQueue[T]) Pop() (T, int) {
 	defer pq.lock.Unlock()
 	item := pq.items[0]
 	pq.items = pq.items[1:len(pq.items)]
-	return item.value, item.distance
+	return item.value, item.priority
 }
 
 func (pq *PriorityQueue[T]) IsEmpty() bool {

@@ -45,21 +45,22 @@ func ShortestPath(g *Graph, start Vertex, end Vertex) ([]Vertex, int) {
 			continue
 		}
 		visited[v] = true
-		near, ok := g.Edges[v]
+		edges, ok := g.Edges[v]
 		if !ok {
-			// Graph consistantcy check
-			panic(fmt.Sprintf("Vertex %v not in graph", v))
+			// No edges from this vertex
+			continue
 		}
 
-		for _, e := range near {
-			if !visited[e.from] {
+		for _, e := range edges {
+			if !visited[e.to] {
 				d := dist[v] + e.weight
-				if d < dist[e.from] {
-					dist[e.from] = d
-					prev[e.from] = v
-					pq.Enqueue(e.from, d)
+				old_d := dist[e.to]
+				if d < old_d {
+					// Update the distance and previous node
+					dist[e.to] = d
+					prev[e.to] = v
+					pq.Enqueue(e.to, d)
 				}
-				// visited[e.Vertex] = true
 			}
 		}
 	}

@@ -41,7 +41,7 @@ type IValue struct {
 	Value interface{}
 }
 
-func MinArrayFunc[T any](arr []T, less func(T, T) bool) (T, int, error) {
+func ArrayMinFunc[T any](arr []T, less func(T, T) bool) (T, int, error) {
 	if len(arr) == 0 {
 		var zero T
 		return zero, -1, errors.New("array is empty")
@@ -58,11 +58,11 @@ func MinArrayFunc[T any](arr []T, less func(T, T) bool) (T, int, error) {
 	return result.Value.(T), result.Index, nil
 }
 
-func MinArray[T cmp.Ordered](arr []T) (T, int, error) {
-	return MinArrayFunc(arr, func(a, b T) bool { return a < b })
+func ArrayMin[T cmp.Ordered](arr []T) (T, int, error) {
+	return ArrayMinFunc(arr, func(a, b T) bool { return a < b })
 }
 
-func MaxArrayFunc[T any](arr []T, greater func(T, T) bool) (T, int, error) {
+func ArrayMaxFunc[T any](arr []T, greater func(T, T) bool) (T, int, error) {
 	if len(arr) == 0 {
 		var zero T
 		return zero, -1, errors.New("array is empty")
@@ -79,8 +79,8 @@ func MaxArrayFunc[T any](arr []T, greater func(T, T) bool) (T, int, error) {
 	return result.Value.(T), result.Index, nil
 }
 
-func MaxArray[T cmp.Ordered](arr []T) (T, int, error) {
-	return MaxArrayFunc(arr, func(a, b T) bool { return a > b })
+func ArrayMax[T cmp.Ordered](arr []T) (T, int, error) {
+	return ArrayMaxFunc(arr, func(a, b T) bool { return a > b })
 }
 
 // https://stackoverflow.com/a/37563128/2531987
