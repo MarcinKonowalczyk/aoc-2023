@@ -24,7 +24,7 @@ func ShortestPath(g *Graph, start Vertex, end Vertex) ([]Vertex, int) {
 
 	// Distance map
 	dist := make(map[Vertex]int)
-	for v, _ := range g.vertices {
+	for v := range g.vertices {
 		dist[v] = math.MaxInt64
 	}
 	dist[start] = 0

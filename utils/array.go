@@ -295,7 +295,7 @@ func ArrayDiff[T Numeric](arr []T, order int) ([]T, error) {
 	}
 	N := len(arr)
 	if N < (order + 1) {
-		return nil, errors.New("For order k, array must have at least k+1 elements")
+		return nil, errors.New("for order k, array must have at least k+1 elements")
 	}
 	diff := ArrayMap(ArrayPairwise(arr), func(pair [2]T) T { return pair[1] - pair[0] })
 	if order == 1 {

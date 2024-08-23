@@ -31,7 +31,7 @@ func Csprintf(color Color, format string, a ...interface{}) string {
 }
 
 func Cprintf(color Color, format string, a ...interface{}) {
-	fmt.Printf(Csprintf(color, format, a...))
+	fmt.Printf(color.String()+format+Reset, a...)
 }
 
 func Cboolf(b bool) string {
