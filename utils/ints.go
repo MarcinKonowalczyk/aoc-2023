@@ -63,3 +63,27 @@ func AbsDiffAndSignBinary[T Integer](a, b T) (T, int) {
 	sign := SignBinary2(a, b)
 	return diff, sign
 }
+
+func IntMax[T Integer](a T, b T) T {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func IntMin[T Integer](a T, b T) T {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func IntClamp[T Integer](a T, min T, max T) T {
+	if a < min {
+		return min
+	}
+	if a > max {
+		return max
+	}
+	return a
+}

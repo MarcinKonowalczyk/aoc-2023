@@ -38,11 +38,11 @@ type rgb struct {
 type line struct {
 	dir      direction
 	distance uint
-	color    rgb
+	hexrgb   string
 }
 
 func (l line) String() string {
-	return fmt.Sprintf("%v %d (%d,%d,%d)", l.dir, l.distance, l.color.r, l.color.g, l.color.b)
+	return fmt.Sprintf("%v %d %s", l.dir, l.distance, l.hexrgb)
 }
 
 func parseLine(s string) (l line, err error) {
@@ -74,56 +74,51 @@ func parseLine(s string) (l line, err error) {
 		return l, fmt.Errorf("invalid distance")
 	}
 	l.distance = uint(distance)
-	rgbhex := parts[2]
-	if rgbhex[0] == '(' {
-		rgbhex = rgbhex[1:]
+	hexrgb := parts[2]
+	if hexrgb[0] == '(' {
+		hexrgb = hexrgb[1:]
 	}
-	if rgbhex[len(rgbhex)-1] == ')' {
-		rgbhex = rgbhex[:len(rgbhex)-1]
+	if hexrgb[len(hexrgb)-1] == ')' {
+		hexrgb = hexrgb[:len(hexrgb)-1]
+	}
+	if hexrgb[0] != '#' {
+		return l, fmt.Errorf("invalid hex color")
+	}
+	hexrgb = hexrgb[1:]
+	if len(hexrgb) != 6 {
+		return l, fmt.Errorf("invalid hex color")
 	}
 
-	l.color, err = parseColor(rgbhex)
-	if err != nil {
-		return l, err
-	}
+	l.hexrgb = hexrgb
 
 	return l, nil
 }
 
-func parseColor(s string) (c rgb, err error) {
-	if s[0] != '#' {
-		return c, fmt.Errorf("invalid hex")
+// Extract the correct parameters from the line and set them in the output line
+func extractCorrectParams(l line) (line, error) {
+	if len(l.hexrgb) != 6 {
+		return l, fmt.Errorf("invalid hex color")
 	}
-	if len(s) != 7 {
-		return c, fmt.Errorf("invalid hex")
-	}
-	s = s[1:]
-	r := s[:2]
-	g := s[2:4]
-	b := s[4:]
-	r_int, err := strconv.ParseInt(r, 16, 64)
+	hex_distance := l.hexrgb[:5]
+	distance, err := strconv.ParseUint(hex_distance, 16, 32)
+	l.distance = uint(distance)
 	if err != nil {
-		return c, err
+		return l, err
 	}
-	if r_int < 0 || r_int > 255 {
-		return c, fmt.Errorf("invalid r")
+	hex_dir := l.hexrgb[5]
+	switch hex_dir {
+	case '0':
+		l.dir = RIGHT
+	case '1':
+		l.dir = DOWN
+	case '2':
+		l.dir = LEFT
+	case '3':
+		l.dir = UP
+	default:
+		return l, fmt.Errorf("invalid direction")
 	}
-	c.r = uint8(r_int)
-	g_int, err := strconv.ParseInt(g, 16, 64)
-	if g_int < 0 || g_int > 255 {
-		return c, fmt.Errorf("invalid g")
-	}
-	if err != nil {
-		return c, err
-	}
-	c.g = uint8(g_int)
-	b_int, err := strconv.ParseInt(b, 16, 64)
-	if b_int < 0 || b_int > 255 {
-		return c, fmt.Errorf("invalid b")
-	}
-	if err != nil {
-		return c, err
-	}
-	c.b = uint8(b_int)
-	return c, nil
+
+	return l, nil
+
 }
