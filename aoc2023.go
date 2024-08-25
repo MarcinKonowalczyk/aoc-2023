@@ -128,6 +128,13 @@ func main() {
 
 	var value int
 	tic := time.Now()
+
+	defer func() {
+		if r := recover(); r != nil {
+			stopf("Recovered from panic in main: %v", r)
+		}
+	}()
+
 	switch day {
 	case 1:
 		value, err = day01.Main(part, lines)
