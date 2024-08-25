@@ -245,7 +245,7 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 		fmt.Println("ad1 == ad3")
 	}
 
-	var reduced_area int
+	var ra1, ra2 int
 
 	switch d3 {
 	case RIGHT, LEFT:
@@ -267,9 +267,8 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
 				if p0.X < p1.X {
-					ra1 := (ad3 - 1) * (ad2 - 1)
-					ra2 := (ad3 - 1) * (ad2 - 1)
-					reduced_area = ra1 + ra2
+					ra1 = (ad3 - 1) * (ad2 - 1)
+					ra2 = (ad3 - 1) * (ad2 - 1)
 				} else if p0.X > p1.X {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else {
@@ -277,7 +276,6 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				}
 			} else {
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.X < p1.X {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.X > p1.X {
@@ -291,13 +289,11 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				new_p3 := p3.AddY(ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				reduced_area = 0
 				if p0.X < p1.X {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.X > p1.X {
-					ra1 := (ad1 - 1) * (ad2 - 1)
-					ra2 := (ad1-1)*(ad2-1) - (p0.X - p1.X)
-					reduced_area = ra1 + ra2
+					ra1 = (ad1 - 1) * (ad2 - 1)
+					ra2 = (ad1-1)*(ad2-1) - (p0.X - p1.X)
 				} else {
 					panic("Invalid direction")
 				}
@@ -306,7 +302,6 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				new_p2 := p2.AddY(ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.X < p1.X {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.X > p1.X {
@@ -316,7 +311,6 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				}
 			} else {
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.X < p1.X {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.X > p1.X {
@@ -335,15 +329,12 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				new_p3 := p3.AddX(-ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				reduced_area = 0
 				if p0.Y < p1.Y {
-					ra1 := (ad1 - 1) * (ad2 - 1)
-					ra2 := (ad1 - 1) * (ad2 - 1)
-					reduced_area = ra1 + ra2
+					ra1 = (ad1 - 1) * (ad2 - 1)
+					ra2 = (ad1 - 1) * (ad2 - 1)
 				} else if p0.Y > p1.Y {
-					ra1 := (ad1 - 1) * (ad2 - 1)
-					ra2 := (ad1-1)*(ad2-1) - (p0.Y - p1.Y)
-					reduced_area = ra1 + ra2
+					ra1 = (ad1 - 1) * (ad2 - 1)
+					ra2 = (ad1-1)*(ad2-1) - (p0.Y - p1.Y)
 				} else {
 					panic("Invalid direction")
 				}
@@ -351,20 +342,17 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				new_p2 := p2.AddX(-ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.Y < p1.Y {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.Y > p1.Y {
-					ra1 := (ad3 - 1) * (ad2 - 1)
-					ra2 := (ad3 - 1) * (ad2 - 1)
-					reduced_area = ra1 + ra2
+					ra1 = (ad3 - 1) * (ad2 - 1)
+					ra2 = (ad3 - 1) * (ad2 - 1)
 				} else {
 					panic("Invalid direction")
 				}
 			} else {
 				// Remove all 4 points. No need to keep the U shape
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.Y < p1.Y {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.Y > p1.Y {
@@ -378,7 +366,6 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				new_p3 := p3.AddX(ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				reduced_area = 0
 				if p0.Y < p1.Y {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.Y > p1.Y {
@@ -390,7 +377,6 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 				new_p2 := p2.AddX(ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.Y < p1.Y {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.Y > p1.Y {
@@ -401,7 +387,6 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 			} else {
 				// Remove all 4 points. No need to keep the U shape
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				reduced_area = 0
 				if p0.Y < p1.Y {
 					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
 				} else if p0.Y > p1.Y {
@@ -414,6 +399,8 @@ func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 			panic("Invalid direction")
 		}
 	}
+
+	reduced_area := ra1 + ra2
 	// fmt.Println("ad0:", ad0)
 	// fmt.Println("ad1:", ad1)
 	// fmt.Println("ad2:", ad2)
