@@ -33,18 +33,21 @@ func main_2(lines []string) (n int, err error) {
 
 	points = points[:len(points)-1] // We don't need the last point anymore
 
-	fmt.Println(points)
+	boundary := boundaryArea(points)
 
 	// We should never go over n points since we're always reducing at least two point
-	MAX_ITER := len(points) / 2
+	// MAX_ITER := len(points) / 2
+	MAX_ITER := 1
 
+	total_area := 0
+	var area int
 	for i := 0; i < MAX_ITER; i++ {
-		points = reduceOnce(points)
+		points, area = reduceOnce(points)
+		fmt.Println("Reduced area:", area)
+		total_area += area
 		if !checkPath(points) {
 			panic("Path is not valid")
 		}
-		fmt.Println("---")
-		fmt.Println(points)
 
 		if len(points) <= 4 {
 			fmt.Println("Reduced to a rectangle")
@@ -52,8 +55,17 @@ func main_2(lines []string) (n int, err error) {
 		}
 	}
 
+	if len(points) != 4 {
+		return -1, fmt.Errorf("failed to reduce to a rectangle")
+	}
+
 	fmt.Println(len(points))
 	fmt.Println(points)
+
+	total_area += rectangleArea(points[0], points[2])
+	total_area += boundary
+
+	fmt.Println("Total area:", total_area)
 
 	// fmt.Println(tg)
 
@@ -85,7 +97,7 @@ func main_2(lines []string) (n int, err error) {
 	return count, nil
 }
 
-func reduceOnce(ps []utils.Point2) []utils.Point2 {
+func reduceOnce(ps []utils.Point2) ([]utils.Point2, int) {
 	// Find a reducible edge
 	reducible_I := findReducibleEdge(ps)
 	fmt.Println("Reducible edge:", reducible_I)
@@ -204,49 +216,108 @@ func getDirs(ps []utils.Point2, i int) (direction, direction, direction, directi
 	return d1, d2, d3, d4, d5
 }
 
-func reduceAtIndex(ps []utils.Point2, i int) []utils.Point2 {
+func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
 	d1, d2, d3, d4, d5 := getDirs(ps, i)
+	p0 := ps[(i-2+len(ps))%len(ps)]
 	p1 := ps[(i-1+len(ps))%len(ps)]
 	p2 := ps[i]
 	p3 := ps[(i+1)%len(ps)]
 	p4 := ps[(i+2)%len(ps)]
-	ad1, ad2 := p1.L1(p2), p3.L1(p4)
-	// ad_delta := utils.IntMin(ad1, ad2)
+	p5 := ps[(i+3)%len(ps)]
+	ad0 := p0.L1(p1)
+	ad1 := p1.L1(p2)
+	ad2 := p2.L1(p3)
+	ad3 := p3.L1(p4)
+	ad4 := p4.L1(p5)
+	// ad_delta := utils.IntMin(ad1, ad3)
+	fmt.Println("Points:", p0, p1, p2, p3, p4, p5)
 	fmt.Println("Directions:", d1, d2, d3, d4, d5)
-	if ad1 < ad2 {
-		fmt.Println("ad1 < ad2")
-	} else if ad1 > ad2 {
-		fmt.Println("ad1 > ad2")
+	fmt.Println("Distances:", ad0, ad1, ad2, ad3, ad4)
+	if ad1 < ad3 {
+		fmt.Println("ad1 < ad3")
+	} else if ad1 > ad3 {
+		fmt.Println("ad1 > ad3")
 	} else {
-		fmt.Println("ad1 == ad2")
+		fmt.Println("ad1 == ad3")
 	}
+
+	var reduced_area int
 
 	switch d3 {
 	case RIGHT, LEFT:
 		switch d2 {
 		case DOWN:
-			if ad1 < ad2 {
+			if ad1 < ad3 {
 				new_p3 := p3.AddY(-ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-			} else if ad1 > ad2 {
-				new_p2 := p2.AddY(-ad2)
+				reduced_area = 0
+				if p0.X < p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.X > p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
+			} else if ad1 > ad3 {
+				new_p2 := p2.AddY(-ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.X < p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.X > p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			} else {
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.X < p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.X > p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			}
 		case UP:
-			if ad1 < ad2 {
+			if ad1 < ad3 {
 				new_p3 := p3.AddY(ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-			} else if ad1 > ad2 {
-				new_p2 := p2.AddY(ad2)
+				reduced_area = 0
+				if p0.X < p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.X > p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
+
+			} else if ad1 > ad3 {
+				new_p2 := p2.AddY(ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.X < p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.X > p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			} else {
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.X < p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.X > p1.X {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			}
 		default:
 			panic("Invalid direction")
@@ -254,37 +325,93 @@ func reduceAtIndex(ps []utils.Point2, i int) []utils.Point2 {
 	case DOWN, UP:
 		switch d2 {
 		case RIGHT:
-			if ad1 < ad2 {
+			if ad1 < ad3 {
 				new_p3 := p3.AddX(-ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-			} else if ad1 > ad2 {
-				new_p2 := p2.AddX(-ad2)
+				reduced_area = 0
+				if p0.Y < p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.Y > p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
+			} else if ad1 > ad3 {
+				new_p2 := p2.AddX(-ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.Y < p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.Y > p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			} else {
 				// Remove all 4 points. No need to keep the U shape
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.Y < p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.Y > p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			}
 		case LEFT:
-			if ad1 < ad2 {
+			if ad1 < ad3 {
 				new_p3 := p3.AddX(ad1)
 				ps[(i+1)%len(ps)] = new_p3
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-			} else if ad1 > ad2 {
-				new_p2 := p2.AddX(ad2)
+				reduced_area = 0
+				if p0.Y < p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.Y > p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
+			} else if ad1 > ad3 {
+				new_p2 := p2.AddX(ad3)
 				ps[i] = new_p2
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.Y < p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.Y > p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			} else {
 				// Remove all 4 points. No need to keep the U shape
 				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
+				reduced_area = 0
+				if p0.Y < p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else if p0.Y > p1.Y {
+					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
+				} else {
+					panic("Invalid direction")
+				}
 			}
 		default:
 			panic("Invalid direction")
 		}
 	}
+	// fmt.Println("ad0:", ad0)
+	// fmt.Println("ad1:", ad1)
+	// fmt.Println("ad2:", ad2)
+	// fmt.Println("ad3:", ad3)
+	// fmt.Println("ad4:", ad4)
+	// fmt.Println("1:", (ad1-1)*(ad2-1))
+	// fmt.Println("2:", (ad1-1)*(ad2-1) - ad
+	// reduced_area := utils.Ternary(ad1 < ad3, (ad1-1)*(ad2-1), (ad3-1)*(ad2-1))
 
-	return ps
+	return ps, reduced_area
 }
 
 // Check that each segment of the path is either horizontal or vertical
@@ -297,4 +424,20 @@ func checkPath(ps []utils.Point2) bool {
 		}
 	}
 	return true
+}
+
+func rectangleArea(p1, p2 utils.Point2) int {
+	dx := p2.X - p1.X
+	dy := p2.Y - p1.Y
+	return dx * dy
+}
+
+func boundaryArea(ps []utils.Point2) int {
+	area := 0
+	for i := 0; i < len(ps); i++ {
+		p1 := ps[i]
+		p2 := ps[(i+1)%len(ps)]
+		area += p1.L1(p2)
+	}
+	return area
 }
