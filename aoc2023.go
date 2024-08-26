@@ -19,6 +19,7 @@ import (
 	"aoc2023/day16"
 	"aoc2023/day17"
 	"aoc2023/day18"
+	"aoc2023/day19"
 	"aoc2023/utils"
 	"errors"
 	"flag"
@@ -172,8 +173,8 @@ func main() {
 		value, err = day17.Main(part, lines)
 	case 18:
 		value, err = day18.Main(part, lines)
-	// case 19:
-	// 	value, err = day19.Main(part, lines)
+	case 19:
+		value, err = day19.Main(part, lines)
 	// case 20:
 	// 	value, err = day20.Main(part, lines)
 	// case 21:
