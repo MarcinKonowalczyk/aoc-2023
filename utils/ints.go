@@ -87,3 +87,17 @@ func IntClamp[T Integer](a T, min T, max T) T {
 	}
 	return a
 }
+
+func BoolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func BoolToSign(b bool) int {
+	if b {
+		return 1
+	}
+	return -1
+}

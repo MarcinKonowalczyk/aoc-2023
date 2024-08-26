@@ -11,19 +11,15 @@ func main_2(lines []string) (n int, err error) {
 		return 0, err
 	}
 
-	// parsed_lines, err = utils.ArrayMapWithError(parsed_lines, extractCorrectParams)
-	// if err != nil {
-	// 	return 0, err
-	// }
+	parsed_lines, err = utils.ArrayMapWithError(parsed_lines, extractCorrectParams)
+	if err != nil {
+		return 0, err
+	}
 
 	points := make([]utils.Point2, 0)
 	points = append(points, utils.Point2{X: 0, Y: 0})
 
 	for _, l := range parsed_lines {
-		// fmt.Println(l)
-		// tg.move(l.dir, l.distance)
-		// fmt.Println(tg)
-
 		points = append(points, move(points[len(points)-1], l.dir, l.distance))
 	}
 
@@ -33,9 +29,6 @@ func main_2(lines []string) (n int, err error) {
 
 	points = points[:len(points)-1] // We don't need the last point anymore
 
-	boundary := boundaryArea(points)
-	fmt.Println("Boundary area:", boundary)
-
 	// We should never go over n points since we're always reducing at least two point
 	MAX_ITER := len(points) / 2
 	// MAX_ITER := 1
@@ -44,14 +37,13 @@ func main_2(lines []string) (n int, err error) {
 	var area int
 	for i := 0; i < MAX_ITER; i++ {
 		points, area = reduceOnce(points)
-		fmt.Println("Reduced area:", area)
 		total_area += area
 		if !checkPath(points) {
 			panic("Path is not valid")
 		}
 
 		if len(points) <= 4 {
-			fmt.Println("Reduced to a rectangle")
+			// fmt.Println("Reduced to a rectangle")
 			break
 		}
 	}
@@ -60,51 +52,15 @@ func main_2(lines []string) (n int, err error) {
 		return -1, fmt.Errorf("failed to reduce to a rectangle")
 	}
 
-	fmt.Println(len(points))
-	fmt.Println(points)
-
 	rect_area := rectangleArea(points[1], points[3])
-	fmt.Println("Rectangle area:", rect_area)
-
 	total_area += rect_area
-	total_area += boundary
 
-	fmt.Println("Total area:", total_area)
-
-	// fmt.Println(tg)
-
-	// p, err := findInteriorPoint(tg)
-	// if err != nil {
-	// 	return 0, err
-	// }
-
-	// fmt.Println("Interior point:", p)
-
-	// tg2 := tg.Copy()
-
-	// fmt.Println("Running flood fill")
-	// floodFill(tg2.grid, p.Add(utils.Point2{X: -tg2.min.X, Y: -tg2.min.Y}))
-
-	// fmt.Println("Filled grid:")
-	// fmt.Println(tg2)
-
-	count := 0
-	// for y := tg2.min.Y; y <= tg2.max.Y; y++ {
-	// 	for x := tg2.min.X; x <= tg2.max.X; x++ {
-	// 		p := utils.Point2{X: x, Y: y}.Sub(tg2.min)
-	// 		if _, ok := tg2.grid.points[p]; ok {
-	// 			count++
-	// 		}
-	// 	}
-	// }
-
-	return count, nil
+	return total_area, nil
 }
 
 func reduceOnce(ps []utils.Point2) ([]utils.Point2, int) {
 	// Find a reducible edge
 	reducible_I := findReducibleEdge(ps)
-	fmt.Println("Reducible edge:", reducible_I)
 	if reducible_I == -1 {
 		panic("No reducible edge found")
 	}
@@ -133,11 +89,11 @@ func findReducibleEdge(ps []utils.Point2) int {
 		d3 := getDirection(p2, p3)
 		d4 := getDirection(p3, p4)
 
-		if !isUShaped(d2, d3, d4) {
-			utils.Cprintf(utils.Yellow, "Edge at %d is not U-shaped\n", i)
+		if !isClockwiseU(d2, d3, d4) {
+			// utils.Cprintf(utils.Yellow, "Edge at %d is not U-shaped\n", i)
 			continue
 		} else {
-			utils.Cprintf(utils.Green, "Edge at %d is U-shaped\n", i)
+			// utils.Cprintf(utils.Green, "Edge at %d is U-shaped\n", i)
 		}
 
 		// We need to check if any other point is inside the U shape rectangle
@@ -148,17 +104,17 @@ func findReducibleEdge(ps []utils.Point2) int {
 				continue
 			}
 			if utils.PointInRectangle(ps[j], p1, p3) {
-				fmt.Println("Point inside:", ps[j])
+				// fmt.Println("Point inside:", ps[j])
 				has_point_inside = true
 				break
 			}
 		}
 
 		if has_point_inside {
-			utils.Cprintf(utils.Yellow, "Edge at %d has a point inside\n", i)
+			// utils.Cprintf(utils.Yellow, "Edge at %d has a point inside\n", i)
 			continue
 		} else {
-			utils.Cprintf(utils.Green, "Edge at %d has no point inside\n", i)
+			// utils.Cprintf(utils.Green, "Edge at %d has no point inside\n", i)
 			return i
 		}
 	}
@@ -182,233 +138,77 @@ func getDirection(p0, p1 utils.Point2) direction {
 	}
 }
 
-func isUShaped(d1, d2, d3 direction) bool {
-	if d1 == RIGHT {
-		if (d2 == DOWN && d3 == LEFT) || (d2 == UP && d3 == LEFT) {
-			return true
-		}
-	} else if d1 == DOWN {
-		if (d2 == LEFT && d3 == UP) || (d2 == RIGHT && d3 == UP) {
-			return true
-		}
-	} else if d1 == LEFT {
-		if (d2 == UP && d3 == RIGHT) || (d2 == DOWN && d3 == RIGHT) {
-			return true
-		}
-	} else if d1 == UP {
-		if (d2 == RIGHT && d3 == DOWN) || (d2 == LEFT && d3 == DOWN) {
-			return true
-		}
-	}
-	return false
-}
-
-func getDirs(ps []utils.Point2, i int) (direction, direction, direction, direction, direction) {
-	p0 := ps[(i-2+len(ps))%len(ps)]
-	p1 := ps[(i-1+len(ps))%len(ps)]
-	p2 := ps[i]
-	p3 := ps[(i+1)%len(ps)]
-	p4 := ps[(i+2)%len(ps)]
-	p5 := ps[(i+3)%len(ps)]
-
-	d1 := getDirection(p0, p1)
-	d2 := getDirection(p1, p2)
-	d3 := getDirection(p2, p3)
-	d4 := getDirection(p3, p4)
-	d5 := getDirection(p4, p5)
-
-	return d1, d2, d3, d4, d5
+func isClockwiseU(d1, d2, d3 direction) bool {
+	return (d1 == RIGHT && d2 == DOWN && d3 == LEFT) ||
+		(d1 == DOWN && d2 == LEFT && d3 == UP) ||
+		(d1 == LEFT && d2 == UP && d3 == RIGHT) ||
+		(d1 == UP && d2 == RIGHT && d3 == DOWN)
 }
 
 func reduceAtIndex(ps []utils.Point2, i int) ([]utils.Point2, int) {
-	d1, d2, d3, d4, d5 := getDirs(ps, i)
-	p0 := ps[(i-2+len(ps))%len(ps)]
-	p1 := ps[(i-1+len(ps))%len(ps)]
-	p2 := ps[i]
-	p3 := ps[(i+1)%len(ps)]
-	p4 := ps[(i+2)%len(ps)]
-	p5 := ps[(i+3)%len(ps)]
+	i0 := (i - 2 + len(ps)) % len(ps)
+	i1 := (i - 1 + len(ps)) % len(ps)
+	i2 := i
+	i3 := (i + 1) % len(ps)
+	i4 := (i + 2) % len(ps)
+	i5 := (i + 3) % len(ps)
+	p0 := ps[i0]
+	p1 := ps[i1]
+	p2 := ps[i2]
+	p3 := ps[i3]
+	p4 := ps[i4]
+	p5 := ps[i5]
+	d0 := getDirection(p0, p1)
+	d1 := getDirection(p1, p2)
+	d2 := getDirection(p2, p3)
+	// d3 := getDirection(p3, p4)
+	d4 := getDirection(p4, p5)
 	ad0 := p0.L1(p1)
 	ad1 := p1.L1(p2)
 	ad2 := p2.L1(p3)
 	ad3 := p3.L1(p4)
 	ad4 := p4.L1(p5)
-	// ad_delta := utils.IntMin(ad1, ad3)
-	fmt.Println("Points:", p0, p1, p2, p3, p4, p5)
-	fmt.Println("Directions:", d1, d2, d3, d4, d5)
-	fmt.Println("Distances:", ad0, ad1, ad2, ad3, ad4)
-	if ad1 < ad3 {
-		fmt.Println("ad1 < ad3")
-	} else if ad1 > ad3 {
-		fmt.Println("ad1 > ad3")
+	// fmt.Println("Points:", p0, p1, p2, p3, p4, p5)
+	// fmt.Println("Directions:", d0, d1, d2, d3, d4)
+	// fmt.Println("Distances:", ad0, ad1, ad2, ad3, ad4)
+
+	var p utils.Point2 = utils.Point2{X: 0, Y: 0}
+	if (d1 == UP && d2 == RIGHT) || (d1 == DOWN && d2 == LEFT) {
+		sign := utils.BoolToSign(d1 == UP)
+		if ad1 < ad3 {
+			p = utils.Point2{X: 0, Y: sign * ad1}
+		} else if ad1 > ad3 {
+			p = utils.Point2{X: 0, Y: sign * ad3}
+		}
+	} else if (d1 == RIGHT && d2 == DOWN) || (d1 == LEFT && d2 == UP) {
+		sign := utils.BoolToSign(d1 == LEFT)
+		if ad1 < ad3 {
+			p = utils.Point2{X: sign * ad1, Y: 0}
+		} else if ad1 > ad3 {
+			p = utils.Point2{X: sign * ad3, Y: 0}
+		}
 	} else {
-		fmt.Println("ad1 == ad3")
+		panic("Invalid U shape")
 	}
 
-	var ra1, ra2 int
+	var reduced_area int = 0
 
-	switch d3 {
-	case RIGHT, LEFT:
-		switch d2 {
-		case DOWN:
-			if ad1 < ad3 {
-				new_p3 := p3.AddY(-ad1)
-				ps[(i+1)%len(ps)] = new_p3
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				if p0.X < p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.X > p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			} else if ad1 > ad3 {
-				new_p2 := p2.AddY(-ad3)
-				ps[i] = new_p2
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.X < p1.X {
-					ra1 = (ad3 - 1) * (ad2 - 1)
-					ra2 = (ad3 - 1) * (ad2 - 1)
-				} else if p0.X > p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			} else {
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.X < p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.X > p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			}
-		case UP:
-			if ad1 < ad3 {
-				new_p3 := p3.AddY(ad1)
-				ps[(i+1)%len(ps)] = new_p3
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				if p0.X < p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.X > p1.X {
-					ra1 = (ad1 - 1) * (ad2 - 1)
-					ra2 = (ad1-1)*(ad2-1) - (p0.X - p1.X)
-				} else {
-					panic("Invalid direction")
-				}
-
-			} else if ad1 > ad3 {
-				new_p2 := p2.AddY(ad3)
-				ps[i] = new_p2
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.X < p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.X > p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			} else {
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.X < p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.X > p1.X {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			}
-		default:
-			panic("Invalid direction")
-		}
-	case DOWN, UP:
-		switch d2 {
-		case RIGHT:
-			if ad1 < ad3 {
-				new_p3 := p3.AddX(-ad1)
-				ps[(i+1)%len(ps)] = new_p3
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				if p0.Y < p1.Y {
-					ra1 = (ad1 - 1) * (ad2 - 1)
-					ra2 = (ad1 - 1) * (ad2 - 1)
-				} else if p0.Y > p1.Y {
-					ra1 = (ad1 - 1) * (ad2 - 1)
-					ra2 = (ad1-1)*(ad2-1) - (p0.Y - p1.Y)
-				} else {
-					panic("Invalid direction")
-				}
-			} else if ad1 > ad3 {
-				new_p2 := p2.AddX(-ad3)
-				ps[i] = new_p2
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.Y < p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.Y > p1.Y {
-					ra1 = (ad3 - 1) * (ad2 - 1)
-					ra2 = (ad3 - 1) * (ad2 - 1)
-				} else {
-					panic("Invalid direction")
-				}
-			} else {
-				// Remove all 4 points. No need to keep the U shape
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.Y < p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.Y > p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			}
-		case LEFT:
-			if ad1 < ad3 {
-				new_p3 := p3.AddX(ad1)
-				ps[(i+1)%len(ps)] = new_p3
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{i, (i - 1 + len(ps)) % len(ps)})
-				if p0.Y < p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.Y > p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			} else if ad1 > ad3 {
-				new_p2 := p2.AddX(ad3)
-				ps[i] = new_p2
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.Y < p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.Y > p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			} else {
-				// Remove all 4 points. No need to keep the U shape
-				ps, _ = utils.ArrayRemoveIndices(ps, []int{(i - 1 + len(ps)) % len(ps), i, (i + 1) % len(ps), (i + 2) % len(ps)})
-				if p0.Y < p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else if p0.Y > p1.Y {
-					utils.Panicf("Calculating reduced area for %v::%v not implemented", d2, d3)
-				} else {
-					panic("Invalid direction")
-				}
-			}
-		default:
-			panic("Invalid direction")
-		}
+	if ad1 < ad3 {
+		ps[i3] = p3.Add(p)
+		ps, _ = utils.ArrayRemoveIndices(ps, i1, i2)
+		reduced_area = ad1*(ad2+1) + ad0*utils.BoolToInt(d0 != d2)
+	} else if ad1 > ad3 {
+		ps[i2] = p2.Add(p)
+		ps, _ = utils.ArrayRemoveIndices(ps, i3, i4)
+		reduced_area = ad3*(ad2+1) + ad4*utils.BoolToInt(d4 != d2)
+	} else {
+		ps, _ = utils.ArrayRemoveIndices(ps, i1, i2, i3, i4)
+		reduced_area = ad1*(ad2+1) + ad0*utils.BoolToInt(d0 != d2) + ad4*utils.BoolToInt(d4 != d2)
 	}
 
-	reduced_area := ra1 + ra2
-	// fmt.Println("ad0:", ad0)
-	// fmt.Println("ad1:", ad1)
-	// fmt.Println("ad2:", ad2)
-	// fmt.Println("ad3:", ad3)
-	// fmt.Println("ad4:", ad4)
-	// fmt.Println("1:", (ad1-1)*(ad2-1))
-	// fmt.Println("2:", (ad1-1)*(ad2-1) - ad
-	// reduced_area := utils.Ternary(ad1 < ad3, (ad1-1)*(ad2-1), (ad3-1)*(ad2-1))
+	if reduced_area < 0 {
+		panic("Negative area")
+	}
 
 	return ps, reduced_area
 }
@@ -429,17 +229,47 @@ func rectangleArea(p1, p2 utils.Point2) int {
 	if p1.X == p2.X || p1.Y == p2.Y {
 		panic("Invalid rectangle")
 	}
-	dx := utils.AbsDiff(p1.X, p2.X) - 1
-	dy := utils.AbsDiff(p1.Y, p2.Y) - 1
+	dx := utils.AbsDiff(p1.X, p2.X) + 1
+	dy := utils.AbsDiff(p1.Y, p2.Y) + 1
 	return dx * dy
 }
 
-func boundaryArea(ps []utils.Point2) int {
-	area := 0
-	for i := 0; i < len(ps); i++ {
-		p1 := ps[i]
-		p2 := ps[(i+1)%len(ps)]
-		area += p1.L1(p2)
-	}
-	return area
-}
+// func flipPointsLeftRight(ps []utils.Point2) []utils.Point2 {
+// 	for i := 0; i < len(ps); i++ {
+// 		ps[i].X = -ps[i].X
+// 	}
+// 	return ps
+// }
+
+// func flipPointsUpDown(ps []utils.Point2) []utils.Point2 {
+// 	for i := 0; i < len(ps); i++ {
+// 		ps[i].Y = -ps[i].Y
+// 	}
+// 	return ps
+// }
+
+// func flipPointsXY(ps []utils.Point2) []utils.Point2 {
+// 	for i := 0; i < len(ps); i++ {
+// 		new_x := ps[i].Y
+// 		new_y := ps[i].X
+// 		ps[i].X = new_x
+// 		ps[i].Y = new_y
+// 	}
+// 	return ps
+// }
+
+// func rotatePoints90(ps []utils.Point2) []utils.Point2 {
+// 	ps = flipPointsXY(ps)
+// 	ps = flipPointsLeftRight(ps)
+// 	return ps
+// }
+
+// func cycleShiftPoints(ps []utils.Point2, n int) []utils.Point2 {
+// 	if n == 0 {
+// 		return ps
+// 	}
+// 	if n < 0 {
+// 		n = len(ps) + n
+// 	}
+// 	return append(ps[n:], ps[:n]...)
+// }

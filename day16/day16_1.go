@@ -338,7 +338,7 @@ func (g *grid) stepBeams() (bool, error) {
 
 		// fmt.Println("Would prune", to_prune, "aka", nb_subset)
 		// panic("pruning not implemented")
-		nb, n_removed = utils.ArrayRemoveIndices(nb, to_prune)
+		nb, n_removed = utils.ArrayRemoveIndices(nb, to_prune...)
 		if n_removed != len(to_prune) {
 			panic("unexpected number of elements removed")
 		}

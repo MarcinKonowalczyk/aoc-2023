@@ -207,7 +207,7 @@ func ArrayContainsFunc[T any](arr []T, test func(T) bool) bool {
 	return ArrayIndexOfFunc(arr, test) != -1
 }
 
-func ArrayRemoveIndices[T any](arr []T, indices []int) ([]T, int) {
+func ArrayRemoveIndices[T any](arr []T, indices ...int) ([]T, int) {
 	N := len(arr)
 	if N == 0 {
 		return arr, 0
