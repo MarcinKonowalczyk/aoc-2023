@@ -40,8 +40,6 @@ func main_1(lines []string) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Printf("Got %d workflow lines\n", len(workflow_lines))
-	fmt.Printf("Got %d part lines\n", len(part_lines))
 	var workflows []Workflow = make([]Workflow, len(workflow_lines))
 	for i, line := range workflow_lines {
 		workflow, err := ParseWorkflowLine(line)
@@ -60,15 +58,15 @@ func main_1(lines []string) (n int, err error) {
 		parts[i] = part
 	}
 
-	fmt.Println("Workflows:")
-	for _, workflow := range workflows {
-		fmt.Println(" ", workflow)
-	}
+	// fmt.Println("Workflows:")
+	// for _, workflow := range workflows {
+	// 	fmt.Println(" ", workflow)
+	// }
 
-	fmt.Println("Parts:")
-	for _, part := range parts {
-		fmt.Println(" ", part)
-	}
+	// fmt.Println("Parts:")
+	// for _, part := range parts {
+	// 	fmt.Println(" ", part)
+	// }
 
 	// Create part input channels
 	CH_MAP = make(map[string]chan Part)
@@ -93,33 +91,19 @@ func main_1(lines []string) (n int, err error) {
 	accepted := make([]Part, 0)
 	rejected := make([]Part, 0)
 	done := make(chan bool)
-	go collect_results(100*time.Millisecond, done, &accepted, &rejected)
+	go collect_results(1*time.Millisecond, done, &accepted, &rejected)
+
 	// Send parts to workflow servers
-	// for _, part := range parts {
-	// 	CH_MAP["in"] <- part
-	// }
-	fmt.Println("Number of parts sent to 'in':", len(parts))
-	send_all(parts, in_ch)
+	send_all(parts, in_ch, 10*time.Microsecond)
 
 	// Wait for all parts to be processed
 	<-done
 
 	number_of_parts := len(accepted) + len(rejected)
-	fmt.Println("Number of parts processed:", number_of_parts)
 
 	if number_of_parts != len(parts) {
 		return -1, fmt.Errorf("not all parts were processed. Expected %d, got %d", len(parts), number_of_parts)
 	}
-
-	// fmt.Println("Accepted parts:")
-	// for _, part := range accepted {
-	// 	fmt.Println(" ", part)
-	// }
-
-	// fmt.Println("Rejected parts:")
-	// for _, part := range rejected {
-	// 	fmt.Println(" ", part)
-	// }
 
 	ratings := 0
 	for _, part := range accepted {
@@ -133,28 +117,21 @@ func main_1(lines []string) (n int, err error) {
 }
 
 func workflow_server(w Workflow, in chan Part) {
-	// fmt.Println("Starting workflow server for", w)
 	for p := range in {
-		fmt.Printf("Workflow '%s' got part %s\n", w.name, p)
 		for _, rule := range w.rules {
 			ok, err := rule.Matches(p)
 			if err != nil {
-				fmt.Println("Error:", err)
 			}
 			if ok {
 				switch rule.target_type {
 				case TGT_ACCEPT:
 					ACCEPTED <- p
-					fmt.Printf("Workflow '%s' accepted part %s\n", w.name, p)
 				case TGT_REJECT:
-					fmt.Printf("Workflow '%s' rejected part %s\n", w.name, p)
 					REJECTED <- p
 				case TGT_NAME:
 					ch, ok := CH_MAP[rule.target]
 					if !ok {
-						fmt.Println("Error: no channel for target", rule.target)
 					} else {
-						fmt.Printf("Workflow '%s' forwarding part %s to '%s'\n", w.name, p, rule.target)
 						ch <- p
 					}
 				}
@@ -204,11 +181,9 @@ func collect_results(timeout time.Duration, done chan bool, accepted *[]Part, re
 	for {
 		select {
 		case p := <-ACCEPTED:
-			fmt.Println("Accepted", p)
 			*accepted = append(*accepted, p)
 			last_activity = time.Now()
 		case p := <-REJECTED:
-			fmt.Println("Rejected", p)
 			*rejected = append(*rejected, p)
 			last_activity = time.Now()
 		default:
@@ -220,16 +195,16 @@ func collect_results(timeout time.Duration, done chan bool, accepted *[]Part, re
 	}
 }
 
-func send_all(parts []Part, ch chan Part) {
+func send_all(parts []Part, ch chan Part, sleep time.Duration) {
 	for _, part := range parts {
 	retry:
 		select {
 		case ch <- part:
-			fmt.Println("Sent part", part)
+			// fmt.Println("Sent part", part)
 		default:
-			time.Sleep(10 * time.Microsecond)
+			time.Sleep(sleep)
 			goto retry
 		}
 	}
-	fmt.Println("All parts sent")
+	// fmt.Println("All parts sent")
 }

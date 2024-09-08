@@ -217,6 +217,12 @@ type Part struct {
 func (p Part) String() string {
 	return fmt.Sprintf("{x=%d m=%d a=%d s=%d}", p.X, p.M, p.A, p.S)
 }
+
+const (
+	MIN_PART_VALUE = 1
+	MAX_PART_VALUE = 4000
+)
+
 func ParsePartLine(line string) (Part, error) {
 	if !strings.HasPrefix(line, "{") || !strings.HasSuffix(line, "}") {
 		return Part{}, fmt.Errorf("invalid part line: %s", line)
@@ -241,7 +247,9 @@ func ParsePartLine(line string) (Part, error) {
 		if err != nil {
 			return Part{}, err
 		}
-		if value < 0 {
+		if value < MIN_PART_VALUE {
+			return Part{}, fmt.Errorf("invalid part line: %s", line)
+		} else if value > MAX_PART_VALUE {
 			return Part{}, fmt.Errorf("invalid part line: %s", line)
 		}
 		switch parts[0] {
