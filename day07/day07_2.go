@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	hands := make([]Hand, 0)
 	for _, line := range lines {
 		hand, err := parseLine(line)

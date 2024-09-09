@@ -4,7 +4,7 @@ import (
 	"aoc2023/utils"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	u := parseLinesToUniverse(lines)
 
 	distances := findDistances(u, 1_000_000)

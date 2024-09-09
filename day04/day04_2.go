@@ -4,7 +4,7 @@ import (
 	"aoc2023/utils"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	var N_intersections []int = make([]int, len(lines))
 	for i, line := range lines {
 		nums, err := lineToNumbers(line)

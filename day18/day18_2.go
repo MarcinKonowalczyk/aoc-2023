@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	parsed_lines, err := utils.ArrayMapWithError(lines, parseLine)
 	if err != nil {
 		return 0, err

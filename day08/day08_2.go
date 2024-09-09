@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	directions, err := parseDirections(lines[0])
 
 	if err != nil {

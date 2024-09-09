@@ -7,7 +7,7 @@ import (
 
 const N = 1000000000
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	grid := parseLines(lines)
 
 	// Do a bunch of cycles and record weigbt after each one, to find cycles

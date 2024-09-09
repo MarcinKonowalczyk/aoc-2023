@@ -16,7 +16,7 @@ func (l lens) Hash() uint8 {
 	return hash(l.label)
 }
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	if len(lines) != 1 {
 		return -1, fmt.Errorf("invalid input")
 	}

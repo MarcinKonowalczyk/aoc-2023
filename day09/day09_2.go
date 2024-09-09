@@ -4,7 +4,7 @@ import (
 	"aoc2023/utils"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	extrapolated_values := make([]int, len(lines))
 	for line_index, line := range lines {
 		values, err := utils.StringOfNumbersToInts(line)

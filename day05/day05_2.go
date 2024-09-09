@@ -5,7 +5,7 @@ type valueRange struct {
 	length int
 }
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	seeds, err := parseSeedsLine(lines[0])
 	if err != nil {
 		return -1, err

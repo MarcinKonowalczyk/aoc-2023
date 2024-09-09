@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	initCache()
 	unfolded_lines := make([]string, len(lines))
 	for line_index, line := range lines {

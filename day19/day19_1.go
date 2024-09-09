@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func Main(part int, lines []string) (n int, err error) {
+func Main(part int, lines []string, verbose bool) (n int, err error) {
 	if part == 1 {
-		return main_1(lines)
+		return main_1(lines, verbose)
 	} else if part == 2 {
-		return main_2(lines)
+		return main_2(lines, verbose)
 	} else {
 		return -1, fmt.Errorf("invalid part")
 	}
@@ -35,7 +35,7 @@ var ACCEPTED chan Part
 
 const MAX_PARTS = 1
 
-func main_1(lines []string) (n int, err error) {
+func main_1(lines []string, verbose bool) (n int, err error) {
 	workflow_lines, part_lines, err := cutAtLine(lines, "")
 	if err != nil {
 		return 0, err
@@ -58,15 +58,17 @@ func main_1(lines []string) (n int, err error) {
 		parts[i] = part
 	}
 
-	// fmt.Println("Workflows:")
-	// for _, workflow := range workflows {
-	// 	fmt.Println(" ", workflow)
-	// }
+	if verbose {
+		fmt.Println("Workflows:")
+		for _, workflow := range workflows {
+			fmt.Println(" ", workflow)
+		}
 
-	// fmt.Println("Parts:")
-	// for _, part := range parts {
-	// 	fmt.Println(" ", part)
-	// }
+		fmt.Println("Parts:")
+		for _, part := range parts {
+			fmt.Println(" ", part)
+		}
+	}
 
 	// Create part input channels
 	CH_MAP = make(map[string]chan Part)

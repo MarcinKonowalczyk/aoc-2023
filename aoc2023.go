@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -43,26 +42,28 @@ func stopf(format string, a ...any) {
 	os.Exit(1)
 }
 
+var day int
+var part int
+var file string
+var verbose bool
+
+func init() {
+	flag.Usage = func() {
+		fmt.Println("Usage: aoc2023 -day <day> -part <part> -filename <filename> [-v]")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	flag.IntVar(&day, "day", 0, "Day of the Advent of Code 2023")
+	flag.IntVar(&part, "part", 0, "Part of the task")
+	flag.StringVar(&file, "filename", "", "Input filename")
+	flag.BoolVar(&verbose, "v", false, "Verbose output")
+}
+
 func main() {
 	flag.Parse()
 
-	args := flag.Args()
-	if len(args) != 3 {
-		stopf("Usage: aoc2023 <day> <part> <input-filename>")
-	}
-
-	day_string := flag.Arg(0)
-	part_string := flag.Arg(1)
-	file := flag.Arg(2)
-
-	day, err := strconv.Atoi(day_string)
-	if err != nil {
-		stopf("Cannot convert string \"%s\" to integer (day)", day_string)
-	}
-
-	part, err := strconv.Atoi(part_string)
-	if err != nil {
-		stopf("Cannot convert string \"%s\" to integer (part)", part_string)
+	if day == 0 || part == 0 || file == "" {
+		flag.Usage()
 	}
 
 	if day < 1 || day > 25 {
@@ -138,55 +139,55 @@ func main() {
 
 	switch day {
 	case 1:
-		value, err = day01.Main(part, lines)
+		value, err = day01.Main(part, lines, verbose)
 	case 2:
-		value, err = day02.Main(part, lines)
+		value, err = day02.Main(part, lines, verbose)
 	case 3:
-		value, err = day03.Main(part, lines)
+		value, err = day03.Main(part, lines, verbose)
 	case 4:
-		value, err = day04.Main(part, lines)
+		value, err = day04.Main(part, lines, verbose)
 	case 5:
-		value, err = day05.Main(part, lines)
+		value, err = day05.Main(part, lines, verbose)
 	case 6:
-		value, err = day06.Main(part, lines)
+		value, err = day06.Main(part, lines, verbose)
 	case 7:
-		value, err = day07.Main(part, lines)
+		value, err = day07.Main(part, lines, verbose)
 	case 8:
-		value, err = day08.Main(part, lines)
+		value, err = day08.Main(part, lines, verbose)
 	case 9:
-		value, err = day09.Main(part, lines)
+		value, err = day09.Main(part, lines, verbose)
 	case 10:
-		value, err = day10.Main(part, lines)
+		value, err = day10.Main(part, lines, verbose)
 	case 11:
-		value, err = day11.Main(part, lines)
+		value, err = day11.Main(part, lines, verbose)
 	case 12:
-		value, err = day12.Main(part, lines)
+		value, err = day12.Main(part, lines, verbose)
 	case 13:
-		value, err = day13.Main(part, lines)
+		value, err = day13.Main(part, lines, verbose)
 	case 14:
-		value, err = day14.Main(part, lines)
+		value, err = day14.Main(part, lines, verbose)
 	case 15:
-		value, err = day15.Main(part, lines)
+		value, err = day15.Main(part, lines, verbose)
 	case 16:
-		value, err = day16.Main(part, lines)
+		value, err = day16.Main(part, lines, verbose)
 	case 17:
-		value, err = day17.Main(part, lines)
+		value, err = day17.Main(part, lines, verbose)
 	case 18:
-		value, err = day18.Main(part, lines)
+		value, err = day18.Main(part, lines, verbose)
 	case 19:
-		value, err = day19.Main(part, lines)
+		value, err = day19.Main(part, lines, verbose)
 	// case 20:
-	// 	value, err = day20.Main(part, lines)
+	// 	value, err = day20.Main(part, lines, verbose)
 	// case 21:
-	// 	value, err = day21.Main(part, lines)
+	// 	value, err = day21.Main(part, lines, verbose)
 	// case 22:
-	// 	value, err = day22.Main(part, lines)
+	// 	value, err = day22.Main(part, lines, verbose)
 	// case 23:
-	// 	value, err = day23.Main(part, lines)
+	// 	value, err = day23.Main(part, lines, verbose)
 	// case 24:
-	// 	value, err = day24.Main(part, lines)
+	// 	value, err = day24.Main(part, lines, verbose)
 	// case 25:
-	// 	value, err = day25.Main(part, lines)
+	// 	value, err = day25.Main(part, lines, verbose)
 	default:
 		stopf("Day %d is not implemented yet", day)
 	}

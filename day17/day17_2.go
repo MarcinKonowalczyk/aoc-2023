@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	g, err := parseLines(lines)
 	if err != nil {
 		return -1, err

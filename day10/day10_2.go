@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	pipe_map := parseLinesToPipeMap(lines)
 	if pipe_map.IsEmpty() {
 		return 0, fmt.Errorf("empty pipe map")

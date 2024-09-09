@@ -1,6 +1,6 @@
 package day16
 
-func main_2(lines []string) (n int, err error) {
+func main_2(lines []string, verbose bool) (n int, err error) {
 	grid, err := parseLines(lines)
 	if err != nil {
 		return -1, err
