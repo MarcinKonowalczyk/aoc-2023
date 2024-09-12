@@ -81,7 +81,8 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 
 	// Start workflow servers
 	for _, workflow := range workflows {
-		go workflow_server(workflow, CH_MAP[workflow.name])
+		ch := CH_MAP[workflow.name]
+		go workflow_server(workflow, ch, ACCEPTED, REJECTED, CH_MAP, part_matcher, false)
 	}
 
 	// Check if workflow named 'in' exists
@@ -93,7 +94,7 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 	accepted := make([]Part, 0)
 	rejected := make([]Part, 0)
 	done := make(chan bool)
-	go collect_results(1*time.Millisecond, done, &accepted, &rejected)
+	go collect_results(1*time.Millisecond, done, ACCEPTED, REJECTED, &accepted, &rejected)
 
 	// Send parts to workflow servers
 	send_all(parts, in_ch, 10*time.Microsecond)
@@ -118,33 +119,79 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 	return ratings, nil
 }
 
-func workflow_server(w Workflow, in chan Part) {
+type MatchingFunc[T any] func(T, Rule) ([]T, []T, error)
+
+func workflow_server[T any](
+	w Workflow,
+	in chan T,
+	accepted chan T,
+	rejected chan T,
+	chmap map[string]chan T,
+	matching_func MatchingFunc[T],
+	verbose bool,
+) {
 	for p := range in {
+		if verbose {
+			fmt.Printf("Workflow '%s' processing part %v\n", w.name, p)
+		}
+
+		// Parts which are lest for processing
+		var parts []T = []T{p}
 		for _, rule := range w.rules {
-			ok, err := rule.Matches(p)
-			if err != nil {
-			}
-			if ok {
-				switch rule.target_type {
-				case TGT_ACCEPT:
-					ACCEPTED <- p
-				case TGT_REJECT:
-					REJECTED <- p
-				case TGT_NAME:
-					ch, ok := CH_MAP[rule.target]
-					if !ok {
-					} else {
-						ch <- p
-					}
-				}
+			if len(parts) == 0 {
+				// No more parts to process
 				break
 			}
+			// Pop the first part
+			part := parts[0]
+			parts = parts[1:]
+
+			// Run the matching function
+			matched_parts, unmatched_parts, err := matching_func(part, rule)
+
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+
+			// Process the results and keep track of unmatched parts
+			for _, part := range matched_parts {
+				switch rule.target_type {
+				case TGT_ACCEPT:
+					accepted <- part
+				case TGT_REJECT:
+					rejected <- part
+				case TGT_NAME:
+					ch, ok := chmap[rule.target]
+					if !ok {
+					} else {
+						ch <- part
+					}
+				}
+			}
+
+			// Update the parts list
+			parts = append(parts, unmatched_parts...)
 		}
 	}
-	fmt.Printf("Workflow '%s' done\n", w.name)
+	if verbose {
+		fmt.Printf("Workflow '%s' done\n", w.name)
+	}
 }
 
-func (r Rule) Matches(p Part) (bool, error) {
+func part_matcher(p Part, r Rule) ([]Part, []Part, error) {
+	ok, err := p.Matches(r)
+	if err != nil {
+		return nil, nil, err
+	}
+	if ok {
+		return []Part{p}, nil, nil
+	} else {
+		return nil, []Part{p}, nil
+	}
+}
+
+func (p Part) Matches(r Rule) (bool, error) {
 	if r.op == OP_UNCOND {
 		return true, nil
 	} else if r.op == OP_GT {
@@ -178,15 +225,22 @@ func (r Rule) Matches(p Part) (bool, error) {
 	}
 }
 
-func collect_results(timeout time.Duration, done chan bool, accepted *[]Part, rejected *[]Part) {
+func collect_results[T any](
+	timeout time.Duration,
+	done chan bool,
+	accepted chan T,
+	rejected chan T,
+	accepted_out *[]T,
+	rejected_out *[]T,
+) {
 	last_activity := time.Now()
 	for {
 		select {
-		case p := <-ACCEPTED:
-			*accepted = append(*accepted, p)
+		case p := <-accepted:
+			*accepted_out = append(*accepted_out, p)
 			last_activity = time.Now()
-		case p := <-REJECTED:
-			*rejected = append(*rejected, p)
+		case p := <-rejected:
+			*rejected_out = append(*rejected_out, p)
 			last_activity = time.Now()
 		default:
 			if time.Since(last_activity) > timeout {
