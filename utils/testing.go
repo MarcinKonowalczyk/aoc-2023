@@ -22,14 +22,14 @@ func Assert(t *testing.T, predicate bool, msg string) {
 func AssertEqual[T comparable](t *testing.T, a T, b T) {
 	if a != b {
 		file, line := getParentInfo()
-		t.Errorf("Expected %v == %v in %s:%d", a, b, file, line)
+		t.Errorf("Expected %v == %v (%T) in %s:%d", a, b, a, file, line)
 	}
 }
 
 func AssertNotEqual[T comparable](t *testing.T, a T, b T) {
 	if a == b {
 		file, line := getParentInfo()
-		t.Errorf("Expected %v != %v in %s:%d", a, b, file, line)
+		t.Errorf("Expected %v != %v (%T) in %s:%d", a, b, a, file, line)
 	}
 }
 
@@ -53,7 +53,7 @@ func AssertError(t *testing.T, err error) {
 func AssertEqualWithComparator[T any](t *testing.T, a T, b T, comparator func(T, T) bool) {
 	if !comparator(a, b) {
 		file, line := getParentInfo()
-		t.Errorf("Expected %v == %v in %s:%d", a, b, file, line)
+		t.Errorf("Expected %v == %v (%T) in %s:%d", a, b, a, file, line)
 	}
 }
 

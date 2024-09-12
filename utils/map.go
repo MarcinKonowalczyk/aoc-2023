@@ -2,6 +2,7 @@ package utils
 
 import (
 	"cmp"
+	"fmt"
 	"sort"
 )
 
@@ -90,4 +91,18 @@ func MapReduceValues[T comparable, V1 any, V2 any](m map[T]V1, initial V2, reduc
 		result = reduce(result, v)
 	}
 	return result
+}
+
+// Look up values in a map by keys. If any key is not found, an error is returned.
+// Keys are returned in the same order as they are looked up.
+func MapLookup[T comparable, V any](m map[T]V, keys []T) ([]V, error) {
+	values := make([]V, 0)
+	for _, key := range keys {
+		value, ok := m[key]
+		if !ok {
+			return nil, fmt.Errorf("key not found: %v", key)
+		}
+		values = append(values, value)
+	}
+	return values, nil
 }
