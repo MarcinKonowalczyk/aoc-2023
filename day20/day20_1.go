@@ -101,18 +101,6 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 		highs[i] = n_high
 	}
 
-	// fmt.Println("End of test pulses")
-
-	// fmt.Println("lows:", lows)
-	// cycle_start, cycle_period := cycledetector.DetectCycle(lows)
-	// if cycle_start == -1 {
-	// 	return -1, fmt.Errorf("no cycle found")
-	// }
-
-	// N_FINAL_PULSES := 1000
-	// extrapolated_lows := cycledetector.ExtrapolateCycle(lows, N_FINAL_PULSES-1, cycle_start, cycle_period)
-	// fmt.Println("extrapolated_lows:", extrapolated_lows)
-
 	total_n_low := 0
 	total_n_high := 0
 	for i := 0; i < N_TEST_PULSES; i++ {
