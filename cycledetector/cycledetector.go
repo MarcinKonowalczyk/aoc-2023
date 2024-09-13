@@ -1,6 +1,9 @@
-package utils
+package cycledetector
 
-import "fmt"
+import (
+	"aoc2023/utils"
+	"fmt"
+)
 
 type CycleDetection struct {
 	Sequence []int // The sequence of elements
@@ -8,6 +11,7 @@ type CycleDetection struct {
 	hare     int   // The position of the hare
 	Start    int   // The start of the cycle
 	Period   int   // The period of the cycle
+	verbose  bool  // Print debug information
 }
 
 func NewCycleDetection() *CycleDetection {
@@ -17,6 +21,7 @@ func NewCycleDetection() *CycleDetection {
 		hare:     -1,
 		Start:    -1,
 		Period:   -1,
+		verbose:  false,
 	}
 }
 
@@ -25,11 +30,14 @@ func (cd CycleDetection) hasCycle() bool {
 }
 
 func (cd CycleDetection) String() string {
-	return fmt.Sprintf("Tortoise: %d, Hare: %d, Start: %d, Period: %d", cd.tortoise, cd.hare, cd.Start, cd.Period)
+	return fmt.Sprintf("{Tort: %d, Hare: %d, Cycle: (%d, %d), Len: %d}", cd.tortoise, cd.hare, cd.Start, cd.Period, len(cd.Sequence))
 }
 
 // Add a new element to the sequence and recomputes the tortoise and hare
 func (cd *CycleDetection) Feed(n int) {
+	if cd.verbose {
+		fmt.Printf("Feeding %d to %v\n", n, cd)
+	}
 	cd.Sequence = append(cd.Sequence, n)
 
 	// Hare always moves
@@ -38,10 +46,14 @@ func (cd *CycleDetection) Feed(n int) {
 	if cd.hasCycle() {
 		// If we have a cycle saved
 		// Check that the cycle which we have found is still valid based on the
+		// current hare position
 
 		expected_index := cd.Start + (cd.hare-cd.Start)%cd.Period
 		expected_value := cd.Sequence[expected_index]
 		if n != expected_value {
+			if cd.verbose {
+				fmt.Printf(" Invalidating cycle (%d, %d) because %d != %d\n", cd.Start, cd.Period, n, expected_value)
+			}
 			// The cycle we're on is invalid.
 			cd.Start = -1
 			cd.Period = -1
@@ -55,6 +67,16 @@ func (cd *CycleDetection) Feed(n int) {
 
 	if cd.Sequence[cd.tortoise] == cd.Sequence[cd.hare] {
 		start, period := processTortoiseHare(cd.tortoise, cd.hare, cd.Sequence)
+		// Ok, we got a new cycle. Let's accept it only if it is shorter than the previous one
+		if cd.hasCycle() && period >= cd.Period {
+			if cd.verbose {
+				fmt.Printf(" Cycle detected but not shorter than (%d, %d) <!- (%d, %d)\n", cd.Start, cd.Period, start, period)
+			}
+			return
+		}
+		if cd.verbose {
+			fmt.Printf(" Cycle detected and accepted (%d, %d) -> (%d, %d)\n", cd.Start, cd.Period, start, period)
+		}
 		cd.Start = start
 		cd.Period = period
 	}
@@ -67,8 +89,7 @@ func (cd *CycleDetection) FeedAll(seq []int) {
 	}
 }
 
-func processTortoiseHare(
-	tort, hare int, seq []int) (start int, period int) {
+func processTortoiseHare(tort, hare int, seq []int) (start int, period int) {
 	if tort == 0 && hare == 0 {
 		// This is the start. The best guess for the cycle is the whole sequence
 		if len(seq) != 1 {
@@ -83,7 +104,7 @@ func processTortoiseHare(
 	// But we might have walked multiple cycles! Let's check all the divisors of the period
 	// and see if any of them are valid, starting from smallest to largest
 	// The first we hit is a valid cycle
-	divisors := Divisors(period)
+	divisors := utils.Divisors(period)
 	if len(divisors) <= 2 {
 		// Period is prime. This is the shortest cycle
 	} else {
@@ -92,14 +113,30 @@ func processTortoiseHare(
 				// Ignore 1
 				continue
 			}
+			if d == period {
+				// Ignore the period itself
+				continue
+			}
+
 			// Check if it is a valid cycle
 			valid := true
 			for i := 0; i < d; i++ {
+				var start_i int = utils.Ternary(start+i < len(seq), start+i, -1)
+				var start_i_d int = utils.Ternary(start+i+d < len(seq), start+i+d, -1)
+
+				if start_i == -1 || start_i_d == -1 {
+					// Not enough elements to check.
+					// Call it invalid
+					valid = false
+					break
+				}
+
 				if seq[start+i] != seq[start+i+d] {
 					valid = false
 					break
 				}
 			}
+
 			if valid {
 				// Accept this period and since we are iterating from smallest to largest
 				// this is the shortest cycle

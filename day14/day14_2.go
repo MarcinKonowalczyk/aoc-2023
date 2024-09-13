@@ -1,7 +1,7 @@
 package day14
 
 import (
-	"aoc2023/utils"
+	"aoc2023/cycledetector"
 	"fmt"
 )
 
@@ -17,12 +17,12 @@ func main_2(lines []string, verbose bool) (n int, err error) {
 		weights[i] = calcNorthWeight(grid)
 	}
 
-	cycle_start, cycle_period := utils.DetectCycle(weights)
+	cycle_start, cycle_period := cycledetector.DetectCycle(weights)
 	if cycle_start == -1 {
 		return -1, fmt.Errorf("no cycle found")
 	}
 
-	extrapolated_weight := utils.ExtrapolateCycle(weights, N-1, cycle_start, cycle_period)
+	extrapolated_weight := cycledetector.ExtrapolateCycle(weights, N-1, cycle_start, cycle_period)
 	return extrapolated_weight, nil
 }
 
