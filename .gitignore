@@ -1,3 +1,4 @@
 aoc2023
 .vscode/launch.json
 *.prof
+.DS_Store
