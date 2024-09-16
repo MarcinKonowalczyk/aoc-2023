@@ -22,3 +22,23 @@ func LCM(a, b int) int {
 
 	return result
 }
+
+// in addition to GCD(a, b), computes the coefficients of Bézout's identity,
+// which are integers x and y such that ax + by = gcd(a, b)
+// https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+// Returns gcd(a, b), x, y
+func ExtendedGCD(a, b int) (int, int, int) {
+	x := 1
+	s := 0
+	y := 0
+	t := 1
+
+	for b != 0 {
+		quotient := a / b
+		a, b = b, a-quotient*b
+		x, s = s, x-quotient*s
+		y, t = t, y-quotient*t
+	}
+
+	return a, x, y
+}

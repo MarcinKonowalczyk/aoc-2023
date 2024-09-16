@@ -1,6 +1,9 @@
 package utils
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestGCD(t *testing.T) {
 	tests := []struct {
@@ -13,11 +16,23 @@ func TestGCD(t *testing.T) {
 		{0, 5, 5},
 		{5, 0, 5},
 		{0, 0, 0},
+		{7, 3, 1},
+		{4, 5, 1},
+		{21, 6, 3},
+		{8, 9, 1},
+		{123*5 + 13, 123, 1},
 	}
 
 	for _, test := range tests {
 		result := GCD(test.a, test.b)
 		AssertEqual(t, result, test.expected)
+		// Also test the ExtendedGCD function
+		result, x, y := ExtendedGCD(test.a, test.b)
+		if testing.Verbose() {
+			fmt.Printf("GCD(%d, %d) = %d*(%d) + %d*(%d) = %d\n", test.a, test.b, test.a, x, test.b, y, test.a*x+test.b*y)
+		}
+		AssertEqual(t, result, test.expected)
+		AssertEqual(t, test.a*x+test.b*y, result)
 	}
 }
 func TestLCM(t *testing.T) {
