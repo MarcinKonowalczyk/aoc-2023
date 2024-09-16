@@ -22,26 +22,11 @@ import (
 	"aoc2023/day19"
 	"aoc2023/day20"
 	"aoc2023/utils"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"path"
-	"strings"
 	"time"
-	"unicode"
 )
-
-func stopf(format string, a ...any) {
-	if format[len(format)-1] != byte('\n') {
-		format = format + "\n"
-	}
-	_, err := fmt.Printf(format, a...)
-	if err != nil {
-		panic(err)
-	}
-	os.Exit(1)
-}
 
 var day int
 var part int
@@ -68,26 +53,17 @@ func main() {
 	}
 
 	if day < 1 || day > 25 {
-		stopf("Expected day in rage [0, 25]. Got: %d", day)
+		utils.Stopf("Expected day in rage [0, 25]. Got: %d", day)
 	}
 
 	if part < 1 || part > 2 {
-		stopf("Expected part in rage [1, 2]. Got: %d", part)
+		utils.Stopf("Expected part in rage [1, 2]. Got: %d", part)
 	}
 
 	// Resolve path
-	file = path.Clean(file)
-	fs, err := os.Stat(file)
-	if err == nil {
-		if fs.IsDir() {
-			stopf("Input file \"%s\" is a directory. Expected a file.", file)
-		}
-		// Otherwise file exists and is a file
-	} else if errors.Is(err, os.ErrNotExist) {
-		stopf("Input file \"%s\" does not exists.", file)
-	} else {
-		// https://stackoverflow.com/a/12518877/2531987
-		stopf("Input file \"%s\" is a Schrodinger file", file)
+	file, err := utils.ResolvePath(file)
+	if err != nil {
+		utils.Stopf("Error when resolving path. Error: %s", err)
 	}
 
 	fmt.Println("Running AOC 2023 code")
@@ -96,33 +72,10 @@ func main() {
 	fmt.Println("Got file:", file)
 
 	// Read input file
-	data_bytes, err := os.ReadFile(file)
+	lines, err := utils.FileToLines(file)
 	if err != nil {
-		stopf("Cannot read input file \"%s\". Error: %s", file, err)
+		utils.Stopf("Error when reading file. Error: %s", err)
 	}
-
-	if len(data_bytes) == 0 {
-		stopf("Input file \"%s\" is empty", file)
-	}
-
-	data := string(data_bytes[:])
-
-	if !is_ascii(data) {
-		stopf("Input file \"%s\" contains non-ASCII characters", file)
-	}
-
-	// Split into lines
-	lines := strings.Split(data, "\n")
-
-	// Remove empty lines
-	// lines = filter(lines, func(s string) bool { return len(s) > 0 })
-
-	// Remove comments
-	// lines = filter(lines, func(s string) bool { return s[:2] != "//" })
-
-	// for _, line := range lines {
-	// 	println(line)
-	// }
 
 	// If the last line is empty, remove it
 	if len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
@@ -134,7 +87,7 @@ func main() {
 
 	defer func() {
 		if r := recover(); r != nil {
-			stopf("Recovered from panic in main: %v", r)
+			utils.Stopf("Recovered from panic in main: %v", r)
 		}
 	}()
 
@@ -190,12 +143,12 @@ func main() {
 	// case 25:
 	// 	value, err = day25.Main(part, lines, verbose)
 	default:
-		stopf("Day %d is not implemented yet", day)
+		utils.Stopf("Day %d is not implemented yet", day)
 	}
 	toc := time.Now()
 
 	if err != nil {
-		stopf("Error when running main. Error: %s", err)
+		utils.Stopf("Error when running main. Error: %s", err)
 	}
 
 	fmt.Printf("Return value: %d\n", value)
@@ -203,14 +156,4 @@ func main() {
 
 	_ = utils.CopyToClipboard(fmt.Sprintf("%d", value))
 
-}
-
-// https://stackoverflow.com/a/53069799/2531987
-func is_ascii(s string) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i] > unicode.MaxASCII {
-			return false
-		}
-	}
-	return true
 }

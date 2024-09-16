@@ -33,6 +33,30 @@ func (o Output) Bool() bool {
 	return o == HIGH
 }
 
+type ModuleKind int
+
+const (
+	FLIP_FLOP ModuleKind = iota
+	CONJUNCTION
+	BROADCASTER
+	DUMMY
+)
+
+func (k ModuleKind) String() string {
+	switch k {
+	case FLIP_FLOP:
+		return "FlipFlop"
+	case CONJUNCTION:
+		return "Conjunction"
+	case BROADCASTER:
+		return "Broadcaster"
+	case DUMMY:
+		return "Dummy"
+	default:
+		panic("invalid ModuleKind")
+	}
+}
+
 type Module interface {
 	String() string
 	Name() string
@@ -40,6 +64,7 @@ type Module interface {
 	Inputs() []string
 	AddInput(string)
 	Send(string, bool) Output
+	Kind() ModuleKind
 }
 
 ////////// FlipFlop //////////
@@ -97,6 +122,10 @@ func (f *FlipFlop) Send(sender string, value bool) Output {
 		}
 	}
 
+}
+
+func (f *FlipFlop) Kind() ModuleKind {
+	return FLIP_FLOP
 }
 
 // Check that FlipFlop implements Module
@@ -160,6 +189,10 @@ func (c *Conjunction) Send(sender string, value bool) Output {
 	}
 }
 
+func (c *Conjunction) Kind() ModuleKind {
+	return CONJUNCTION
+}
+
 // Check that Conjunction implements Module
 var _ Module = &Conjunction{}
 
@@ -198,6 +231,10 @@ func (b *Broadcaster) Send(sender string, value bool) Output {
 	}
 }
 
+func (b *Broadcaster) Kind() ModuleKind {
+	return BROADCASTER
+}
+
 // Check that Broadcaster implements Module
 var _ Module = &Broadcaster{}
 
@@ -234,6 +271,10 @@ func (d *Dummy) Send(sender string, value bool) Output {
 
 func NewDummy(name string) *Dummy {
 	return &Dummy{name: name}
+}
+
+func (d *Dummy) Kind() ModuleKind {
+	return DUMMY
 }
 
 // Check that Dummy implements Module

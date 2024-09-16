@@ -21,16 +21,57 @@ type element struct {
 }
 
 func main_1(lines []string, verbose bool) (n int, err error) {
+	modules, names, err := ParseModules(lines, verbose)
+	if err != nil {
+		return 0, err
+	}
+
+	// Make the input queues
+	input_queues := make(map[string][]element, 0)
+	for name := range modules {
+		input_queues[name] = make([]element, 0)
+	}
+
+	// Send a bunch of test pulses to the broadcaster
+	N_TEST_PULSES := 1000
+	lows := make([]int, N_TEST_PULSES)
+	highs := make([]int, N_TEST_PULSES)
+
+	hooks := make(map[string]Hook)
+
+	for i := 0; i < N_TEST_PULSES; i++ {
+		input_queues["broadcaster"] = []element{{"", false}}
+		n_low, n_high, err := drive_machine(modules, input_queues, names, hooks, false)
+		if err != nil {
+			return 0, err
+		}
+		n_low++ // Count the initial pulse
+		lows[i] = n_low
+		highs[i] = n_high
+	}
+
+	total_n_low := 0
+	total_n_high := 0
+	for i := 0; i < N_TEST_PULSES; i++ {
+		total_n_low += lows[i]
+		total_n_high += highs[i]
+	}
+	product := total_n_low * total_n_high
+
+	return product, nil
+}
+
+func ParseModules(lines []string, verbose bool) (map[string]Module, []string, error) {
 	modules := make(map[string]Module, 0)
 	names := make([]string, 0) // Names in order of appearance
 	for _, line := range lines {
 		module, err := ParseLine(line)
 		if err != nil {
-			return 0, err
+			return nil, nil, err
 		}
 		name := module.Name()
 		if _, ok := modules[name]; ok {
-			return 0, fmt.Errorf("duplicate module: %s", name)
+			return nil, nil, fmt.Errorf("duplicate module: %s", name)
 		}
 		modules[name] = module
 		names = append(names, name)
@@ -41,7 +82,7 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 		return name == "broadcaster"
 	})
 	if !found {
-		return 0, fmt.Errorf("missing broadcaster")
+		return nil, nil, fmt.Errorf("missing broadcaster")
 	}
 
 	// Link inputs to outputs
@@ -79,43 +120,16 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 		}
 	}
 
-	// Make the input queues
-	input_queues := make(map[string][]element, 0)
-	for name := range modules {
-		input_queues[name] = make([]element, 0)
-	}
-
-	// Send a bunch of test pulses to the broadcaster
-	N_TEST_PULSES := 1000
-	lows := make([]int, N_TEST_PULSES)
-	highs := make([]int, N_TEST_PULSES)
-
-	for i := 0; i < N_TEST_PULSES; i++ {
-		input_queues["broadcaster"] = []element{{"", false}}
-		n_low, n_high, err := drive_machine(modules, input_queues, names, false)
-		if err != nil {
-			return 0, err
-		}
-		n_low++ // Count the initial pulse
-		lows[i] = n_low
-		highs[i] = n_high
-	}
-
-	total_n_low := 0
-	total_n_high := 0
-	for i := 0; i < N_TEST_PULSES; i++ {
-		total_n_low += lows[i]
-		total_n_high += highs[i]
-	}
-	product := total_n_low * total_n_high
-
-	return product, nil
+	return modules, names, nil
 }
+
+type Hook func(sender string, value bool)
 
 func drive_machine(
 	modules map[string]Module,
 	input_queues map[string][]element,
 	names_in_order []string,
+	module_hooks map[string]Hook,
 	verbose bool,
 ) (int, int, error) {
 
@@ -156,6 +170,10 @@ func drive_machine(
 			return -1, -1, fmt.Errorf("module not found: %s", name)
 		}
 
+		// Call the hook for this module if it exists
+		if hook, ok := module_hooks[name]; ok {
+			hook(e.sender, e.value)
+		}
 		output := module.Send(e.sender, e.value)
 		if output == NOTHING {
 			// Nothing to do. Pass
