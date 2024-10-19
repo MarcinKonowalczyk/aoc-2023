@@ -1,26 +1,36 @@
 package day21
 
-import "fmt"
+import (
+	"aoc2023/utils"
+	"fmt"
+)
 
 type Field rune
 
 const (
-	START  Field = 'S'
 	GARDEN Field = '.'
 	ROCK   Field = '#'
 )
 
 type Garden struct {
-	grid [][]Field
-	rows int
-	cols int
+	grid      [][]Field
+	rows      int
+	cols      int
+	positions []utils.Point2
 }
 
 func (g Garden) String() string {
 	s := "Garden:\n"
 	for i := 0; i < g.rows; i++ {
 		for j := 0; j < g.cols; j++ {
+			for _, p := range g.positions {
+				if i == p.X && j == p.Y {
+					s += "O"
+					goto next
+				}
+			}
 			s += string(g.grid[i][j])
+		next:
 		}
 		s += "\n"
 	}
@@ -35,6 +45,7 @@ func parseLines(lines []string) (Garden, error) {
 
 	cols := len(lines[0])
 	grid := make([][]Field, rows)
+	start_pos := utils.Point2{-1, -1}
 	for i, line := range lines {
 		grid[i] = make([]Field, cols)
 		if len(line) != cols {
@@ -43,7 +54,8 @@ func parseLines(lines []string) (Garden, error) {
 		for j, r := range line {
 			switch r {
 			case 'S':
-				grid[i][j] = START
+				start_pos = utils.Point2{i, j}
+				grid[i][j] = GARDEN
 			case '.':
 				grid[i][j] = GARDEN
 			case '#':
@@ -53,7 +65,10 @@ func parseLines(lines []string) (Garden, error) {
 			}
 		}
 	}
+	if start_pos.X == -1 {
+		return Garden{}, fmt.Errorf("no starting position")
+	}
 
-	return Garden{grid: grid, rows: len(lines), cols: cols}, nil
+	return Garden{grid: grid, rows: len(lines), cols: cols, positions: []utils.Point2{start_pos}}, nil
 
 }

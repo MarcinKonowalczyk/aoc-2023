@@ -1,6 +1,7 @@
 package day21
 
 import (
+	"aoc2023/utils"
 	"fmt"
 )
 
@@ -21,8 +22,53 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 	}
 
 	if verbose {
+		fmt.Println("Initial state:")
 		fmt.Println(g)
 	}
 
-	return 0, nil
+	N := 64
+
+	for i := 0; i < N; i++ {
+		g.Step()
+	}
+
+	if verbose {
+		fmt.Println("After", N, "steps:")
+		fmt.Println(g)
+	}
+
+	return len(g.positions), nil
+}
+
+func (g *Garden) Step() {
+	new_positions := make([]utils.Point2, 0)
+	for _, p := range g.positions {
+		if p.X > 0 {
+			if g.grid[p.X-1][p.Y] == GARDEN {
+				new_positions = append(new_positions, utils.Point2{X: p.X - 1, Y: p.Y})
+			}
+		}
+		if p.X < g.rows-1 {
+			if g.grid[p.X+1][p.Y] == GARDEN {
+				new_positions = append(new_positions, utils.Point2{X: p.X + 1, Y: p.Y})
+			}
+		}
+		if p.Y > 0 {
+			if g.grid[p.X][p.Y-1] == GARDEN {
+				new_positions = append(new_positions, utils.Point2{X: p.X, Y: p.Y - 1})
+			}
+		}
+		if p.Y < g.cols-1 {
+			if g.grid[p.X][p.Y+1] == GARDEN {
+				new_positions = append(new_positions, utils.Point2{X: p.X, Y: p.Y + 1})
+			}
+		}
+
+	}
+
+	// Deduplicate
+	new_positions = utils.ArrayUnique(new_positions)
+	// fmt.Println(new_positions)
+
+	g.positions = new_positions
 }
