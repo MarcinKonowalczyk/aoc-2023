@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # https://github.com/MarcinKonowalczyk/run_sh
 # Bash script run by a keyboard shortcut, called with the current file path $1
 # This is intended as an example, but also contains a bunch of useful path partitions
@@ -5,12 +6,12 @@
 
 echo "Hello from run script! ^_^"
 
-_VERSION="0.2" # Version of this script
+_VERSION="0.2.2" # Version of this script
 
 # The directory of the main project from which this script is running
 # https://stackoverflow.com/a/246128/2531987
-ROOT_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-ROOT_FOLDER="${ROOT_FOLDER%/*}" # Strip .vscode folder
+ROOT_FOLDER="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+ROOT_FOLDER="${ROOT_FOLDER%/*}"   # Strip .vscode folder
 PROJECT_NAME="${ROOT_FOLDER##*/}" # Project name
 
 FULL_FILE_PATH="$1"
@@ -19,7 +20,7 @@ _RELATIVE_FILE_PATH="${FULL_FILE_PATH##*$ROOT_FOLDER/}" # Relative path of the c
 # Split the relative file path into an array
 RELATIVE_PATH_PARTS=(${_RELATIVE_FILE_PATH//\// })
 DEPTH=${#RELATIVE_PATH_PARTS[@]}
-DEPTH=$((DEPTH-1))
+DEPTH=$((DEPTH - 1))
 
 # Couple of useful variables
 FILENAME="${RELATIVE_PATH_PARTS[$DEPTH]}"
@@ -29,7 +30,7 @@ EXTENSION="" && [[ "$FILENAME" == *.* ]] && EXTENSION="${FILENAME##*.}"
 
 ########################################
 
-GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; NC='\033[0m'; PURPLE='\033[0;34m'; DARK_GRAY='\033[1;30m';
+GREEN='\033[0;32m';YELLOW='\033[0;33m';RED='\033[0;31m';PURPLE='\033[0;34m';DARK_GRAY='\033[1;30m';NC='\033[0m';
 
 function logo() {
     TEXT=(
@@ -57,11 +58,14 @@ function info() {
     echo -e "FULL_FILE_PATH      : $GREEN${FULL_FILE_PATH}$NC  # full path of the current file"
 }
 
-
 # VERBOSE=true
 VERBOSE=false
 [ "${RELATIVE_PATH_PARTS[0]}" = ".vscode" ] && [ ${RELATIVE_PATH_PARTS[$DEPTH]} = "run.sh" ] && [ $DEPTH -eq 1 ] && VERBOSE=true
-if $VERBOSE; then logo; info; fi
+if $VERBOSE; then
+    logo
+    info
+    exit 0
+fi
 
 ########################################
 
@@ -89,7 +93,9 @@ if [ $EXTENSION = "go" ] && [[ $FILENAME == day* ]]; then
 
     (
         cd $ROOT_FOLDER
-        go run . $DAY $PART $TEST_FILE_PATH
+        # go run . -day 21 -part 1 -filename ./data/test/day21.txt -v    
+        # go run . $DAY $PART $TEST_FILE_PATH
+        go run . -day $DAY -part $PART -filename $TEST_FILE_PATH -v
 
         # If the program exited with an error, exit with an error
         if [ $? -ne 0 ]; then
@@ -101,3 +107,8 @@ if [ $EXTENSION = "go" ] && [[ $FILENAME == day* ]]; then
 
 fi
 
+########################################
+
+# Got to the end of the script. I guess there's nothing to do.
+
+echo -e "Nothing to do for $GREEN${FULL_FILE_PATH}$NC"
