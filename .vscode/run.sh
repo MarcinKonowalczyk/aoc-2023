@@ -93,8 +93,6 @@ if [ $EXTENSION = "go" ] && [[ $FILENAME == day* ]]; then
 
     (
         cd $ROOT_FOLDER
-        # go run . -day 21 -part 1 -filename ./data/test/day21.txt -v    
-        # go run . $DAY $PART $TEST_FILE_PATH
         go run . -day $DAY -part $PART -filename $TEST_FILE_PATH -v
 
         # If the program exited with an error, exit with an error
