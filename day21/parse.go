@@ -7,13 +7,8 @@ import (
 
 type Field rune
 
-const (
-	GARDEN Field = '.'
-	ROCK   Field = '#'
-)
-
 type Garden struct {
-	grid      [][]Field
+	grid      [][]bool
 	rows      int
 	cols      int
 	positions []utils.Point2
@@ -29,7 +24,7 @@ func (g Garden) String() string {
 					goto next
 				}
 			}
-			s += string(g.grid[i][j])
+			s += utils.Ternary(g.grid[i][j], "#", ".")
 		next:
 		}
 		s += "\n"
@@ -44,22 +39,20 @@ func parseLines(lines []string) (Garden, error) {
 	}
 
 	cols := len(lines[0])
-	grid := make([][]Field, rows)
-	start_pos := utils.Point2{-1, -1}
+	grid := make([][]bool, rows)
+	start_pos := utils.Point2{X: -1, Y: -1}
 	for i, line := range lines {
-		grid[i] = make([]Field, cols)
+		grid[i] = make([]bool, cols)
 		if len(line) != cols {
 			return Garden{}, fmt.Errorf("line %d has %d columns, expected %d", i, len(line), cols)
 		}
 		for j, r := range line {
 			switch r {
 			case 'S':
-				start_pos = utils.Point2{i, j}
-				grid[i][j] = GARDEN
+				start_pos = utils.Point2{X: i, Y: j}
 			case '.':
-				grid[i][j] = GARDEN
 			case '#':
-				grid[i][j] = ROCK
+				grid[i][j] = true
 			default:
 				return Garden{}, fmt.Errorf("invalid rune '%c'", r)
 			}

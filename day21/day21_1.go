@@ -44,22 +44,22 @@ func (g *Garden) Step() {
 	new_positions := make([]utils.Point2, 0)
 	for _, p := range g.positions {
 		if p.X > 0 {
-			if g.grid[p.X-1][p.Y] == GARDEN {
+			if !g.grid[p.X-1][p.Y] {
 				new_positions = append(new_positions, utils.Point2{X: p.X - 1, Y: p.Y})
 			}
 		}
 		if p.X < g.rows-1 {
-			if g.grid[p.X+1][p.Y] == GARDEN {
+			if !g.grid[p.X+1][p.Y] {
 				new_positions = append(new_positions, utils.Point2{X: p.X + 1, Y: p.Y})
 			}
 		}
 		if p.Y > 0 {
-			if g.grid[p.X][p.Y-1] == GARDEN {
+			if !g.grid[p.X][p.Y-1] {
 				new_positions = append(new_positions, utils.Point2{X: p.X, Y: p.Y - 1})
 			}
 		}
 		if p.Y < g.cols-1 {
-			if g.grid[p.X][p.Y+1] == GARDEN {
+			if !g.grid[p.X][p.Y+1] {
 				new_positions = append(new_positions, utils.Point2{X: p.X, Y: p.Y + 1})
 			}
 		}
