@@ -102,6 +102,7 @@ if [ $EXTENSION = "go" ] && [[ $FILENAME == day* ]]; then
         fi
     )
 
+    exit 0
 
 fi
 
