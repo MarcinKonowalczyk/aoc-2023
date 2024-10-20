@@ -12,23 +12,65 @@ type Garden struct {
 	rows      int
 	cols      int
 	positions []utils.Point2
+	tiles     int
 }
 
 func (g Garden) String() string {
 	s := "Garden:\n"
-	for i := 0; i < g.rows; i++ {
-		for j := 0; j < g.cols; j++ {
-			for _, p := range g.positions {
-				if i == p.X && j == p.Y {
-					s += "O"
-					goto next
+
+	if g.tiles == 0 {
+		for i := 0; i < g.rows; i++ {
+			for j := 0; j < g.cols; j++ {
+				// Crude search for positions but its fine for printing.
+				for _, p := range g.positions {
+					if i == p.X && j == p.Y {
+						s += "O"
+						goto next
+					}
 				}
+				s += utils.Ternary(g.grid[i][j], "#", ".")
+			next:
 			}
-			s += utils.Ternary(g.grid[i][j], "#", ".")
-		next:
+			s += "\n"
 		}
-		s += "\n"
+	} else {
+		// Tiled garden. Draw '|' and '-' lines between tiles
+
+		rows_until_line := g.rows / g.tiles
+		cols_until_line := g.cols / g.tiles
+		horizontal_line := ""
+		for i := 0; i < g.tiles; i++ {
+			for j := 0; j < cols_until_line; j++ {
+				horizontal_line += "─"
+			}
+			if i != g.tiles-1 {
+				horizontal_line += "┼"
+			}
+		}
+
+		for i := 0; i < g.rows; i++ {
+			if i%rows_until_line == 0 && i != 0 {
+				s += horizontal_line + "\n"
+				continue
+			}
+			for j := 0; j < g.cols; j++ {
+				if j%cols_until_line == 0 && j != 0 {
+					s += "│"
+				}
+				// Crude search for positions but its fine for printing.
+				for _, p := range g.positions {
+					if i == p.X && j == p.Y {
+						s += "O"
+						goto next_tiled
+					}
+				}
+				s += utils.Ternary(g.grid[i][j], "#", ".")
+			next_tiled:
+			}
+			s += "\n"
+		}
 	}
+
 	return s
 }
 

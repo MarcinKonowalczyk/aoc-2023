@@ -15,6 +15,8 @@ func Main(part int, lines []string, verbose bool) (n int, err error) {
 	}
 }
 
+const N1 = 64
+
 func main_1(lines []string, verbose bool) (n int, err error) {
 	g, err := parseLines(lines)
 	if err != nil {
@@ -26,14 +28,12 @@ func main_1(lines []string, verbose bool) (n int, err error) {
 		fmt.Println(g)
 	}
 
-	N := 64
-
-	for i := 0; i < N; i++ {
+	for i := 0; i < N1; i++ {
 		g.Step()
 	}
 
 	if verbose {
-		fmt.Println("After", N, "steps:")
+		fmt.Println("After", N1, "steps:")
 		fmt.Println(g)
 	}
 
