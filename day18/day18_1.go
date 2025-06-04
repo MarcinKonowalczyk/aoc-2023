@@ -83,10 +83,10 @@ func (sg sparse_grid) Copy() sparse_grid {
 
 func (sg *sparse_grid) addPoint(p utils.Point2) {
 	if p.X < 0 || p.Y < 0 {
-		utils.Panicf("invalid point %v", p)
+		panic(fmt.Sprintf("invalid point %v", p))
 	}
 	if p.X >= sg.cols || p.Y >= sg.rows {
-		utils.Panicf("invalid point %v", p)
+		panic(fmt.Sprintf("invalid point %v", p))
 	}
 
 	sg.points[p] = struct{}{}

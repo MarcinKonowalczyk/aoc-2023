@@ -2,6 +2,8 @@ package utils
 
 import (
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestPointsIn2D(t *testing.T) {
@@ -42,7 +44,7 @@ func TestPointsIn2D(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			result := PointsIn2D(tt.width, tt.height)
-			AssertEqualArrays(t, result, tt.expected)
+			assert.EqualArrays(t, result, tt.expected)
 		})
 	}
 }

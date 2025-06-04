@@ -1,8 +1,9 @@
 package day12
 
 import (
-	"aoc2023/utils"
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestLineHashDifferentSprings(t *testing.T) {
@@ -20,7 +21,7 @@ func TestLineHashDifferentSprings(t *testing.T) {
 	l2 := Line{blocks, groups}
 	h2 := l2.Hash()
 
-	utils.AssertNotEqual(t, h1, h2)
+	assert.NotEqual(t, h1, h2)
 }
 
 func TestLineHashDifferentGroups(t *testing.T) {
@@ -38,7 +39,7 @@ func TestLineHashDifferentGroups(t *testing.T) {
 	l2 := Line{blocks, groups}
 	h2 := l2.Hash()
 
-	utils.AssertNotEqual(t, h1, h2)
+	assert.NotEqual(t, h1, h2)
 }
 
 func TestLineHashSpecificCase01(t *testing.T) {
@@ -55,7 +56,7 @@ func TestLineHashSpecificCase01(t *testing.T) {
 		blocks: [][]Spring{},
 	}.Hash()
 
-	utils.AssertNotEqual(t, h1, h2)
+	assert.NotEqual(t, h1, h2)
 }
 
 func TestLineHashSpecificCase02(t *testing.T) {
@@ -75,7 +76,7 @@ func TestLineHashSpecificCase02(t *testing.T) {
 		},
 	}.Hash()
 
-	utils.AssertNotEqual(t, h1, h2)
+	assert.NotEqual(t, h1, h2)
 }
 
 func TestLineHashSpecificCase03(t *testing.T) {
@@ -95,5 +96,5 @@ func TestLineHashSpecificCase03(t *testing.T) {
 		},
 	}.Hash()
 
-	utils.AssertNotEqual(t, h1, h2)
+	assert.NotEqual(t, h1, h2)
 }

@@ -3,6 +3,8 @@ package utils
 import (
 	"runtime"
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestCopyToClipboard(t *testing.T) {
@@ -10,8 +12,8 @@ func TestCopyToClipboard(t *testing.T) {
 	err := CopyToClipboard("test")
 	// Check if we're on macOS
 	if runtime.GOOS == "darwin" {
-		AssertNoError(t, err)
+		assert.NoError(t, err)
 	} else {
-		AssertError(t, err)
+		assert.NotEqual(t, err, nil)
 	}
 }

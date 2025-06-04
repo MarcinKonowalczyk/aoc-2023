@@ -1,8 +1,9 @@
 package dijkstra
 
 import (
-	"aoc2023/utils"
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 // Comparator for edge maps
@@ -32,7 +33,7 @@ func compareEdgeMaps(a, b map[Vertex][]*Edge) bool {
 }
 
 func assertEqualEdgeMaps(t *testing.T, a, b map[Vertex][]*Edge) {
-	utils.AssertEqualWithComparator(t, a, b, compareEdgeMaps)
+	assert.EqualCmp(t, a, b, compareEdgeMaps)
 }
 
 func TestDijkstra_BuildGraph(t *testing.T) {
@@ -48,7 +49,7 @@ func TestDijkstra_BuildGraph(t *testing.T) {
 	g.AddVertex(vD)
 
 	expected_vertices := []Vertex{vA, vB, vC, vD}
-	utils.AssertEqualArraysUnordered(t, g.Vertices(), expected_vertices)
+	assert.EqualArraysUnordered(t, g.Vertices(), expected_vertices)
 
 	g.AddUndirectedEdge(vA, vB, 1)
 	assertEqualEdgeMaps(t, g.Edges, map[Vertex][]*Edge{
@@ -87,7 +88,7 @@ func TestDijkstra_AddExistingVertex(t *testing.T) {
 	g.AddVertex(vA)
 
 	expected_vertices := []Vertex{vA}
-	utils.AssertEqualArrays(t, g.Vertices(), expected_vertices)
+	assert.EqualArrays(t, g.Vertices(), expected_vertices)
 }
 
 func TestDijkstra_AddExistingEdge(t *testing.T) {

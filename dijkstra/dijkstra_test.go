@@ -1,8 +1,9 @@
 package dijkstra
 
 import (
-	"aoc2023/utils"
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestDjkstra_ABC_Line(t *testing.T) {
@@ -17,8 +18,8 @@ func TestDjkstra_ABC_Line(t *testing.T) {
 	g.AddUndirectedEdge(vB, vC, 2)
 
 	path, distande := ShortestPath(&g, vA, vC)
-	utils.AssertEqual(t, distande, 3)
-	utils.AssertEqualArrays(t, path, []Vertex{vA, vB, vC})
+	assert.Equal(t, distande, 3)
+	assert.EqualArrays(t, path, []Vertex{vA, vB, vC})
 }
 
 func TestDjkstra_ABC_Cycle(t *testing.T) {
@@ -34,8 +35,8 @@ func TestDjkstra_ABC_Cycle(t *testing.T) {
 	g.AddUndirectedEdge(vB, vC, 3)
 
 	path, distande := ShortestPath(&g, vA, vC)
-	utils.AssertEqual(t, distande, 2)
-	utils.AssertEqualArrays(t, path, []Vertex{vA, vC})
+	assert.Equal(t, distande, 2)
+	assert.EqualArrays(t, path, []Vertex{vA, vC})
 }
 
 func TestDjkstra_LargerCase(t *testing.T) {
@@ -66,6 +67,6 @@ func TestDjkstra_LargerCase(t *testing.T) {
 	g.AddUndirectedEdge(vE, vF, 6)
 
 	path, distande := ShortestPath(&g, vA, vE)
-	utils.AssertEqual(t, distande, 20)
-	utils.AssertEqualArrays(t, path, []Vertex{vA, vC, vD, vE})
+	assert.Equal(t, distande, 20)
+	assert.EqualArrays(t, path, []Vertex{vA, vC, vD, vE})
 }

@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestGCD(t *testing.T) {
@@ -25,14 +27,14 @@ func TestGCD(t *testing.T) {
 
 	for _, test := range tests {
 		result := GCD(test.a, test.b)
-		AssertEqual(t, result, test.expected)
+		assert.Equal(t, result, test.expected)
 		// Also test the ExtendedGCD function
 		result, x, y := ExtendedGCD(test.a, test.b)
 		if testing.Verbose() {
 			fmt.Printf("GCD(%d, %d) = %d*(%d) + %d*(%d) = %d\n", test.a, test.b, test.a, x, test.b, y, test.a*x+test.b*y)
 		}
-		AssertEqual(t, result, test.expected)
-		AssertEqual(t, test.a*x+test.b*y, result)
+		assert.Equal(t, result, test.expected)
+		assert.Equal(t, test.a*x+test.b*y, result)
 	}
 }
 func TestLCM(t *testing.T) {
@@ -50,6 +52,6 @@ func TestLCM(t *testing.T) {
 
 	for _, test := range tests {
 		result := LCM(test.a, test.b)
-		AssertEqual(t, result, test.expected)
+		assert.Equal(t, result, test.expected)
 	}
 }

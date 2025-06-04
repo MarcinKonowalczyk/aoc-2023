@@ -1,8 +1,9 @@
 package dijkstra
 
 import (
-	"aoc2023/utils"
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestPriorityQueue(t *testing.T) {
@@ -28,5 +29,5 @@ func TestPriorityQueue(t *testing.T) {
 		q.Enqueue(enqueue_order[i], enqueue_distances[i])
 	}
 	// Check that the queue is sorted
-	utils.AssertEqualArrays(t, q.Items(), expected_order)
+	assert.EqualArrays(t, q.Items(), expected_order)
 }

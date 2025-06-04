@@ -2,6 +2,8 @@ package utils
 
 import (
 	"testing"
+
+	"github.com/MarcinKonowalczyk/assert"
 )
 
 func TestMapMap(t *testing.T) {
@@ -16,7 +18,7 @@ func TestMapMap(t *testing.T) {
 		5: 12,
 	}
 	result := MapMap(m, func(n int) int { return n * 2 })
-	AssertEqualMaps(t, result, e)
+	assert.EqualMaps(t, result, e)
 }
 func TestMapLookup(t *testing.T) {
 	m := map[int]string{
@@ -26,18 +28,18 @@ func TestMapLookup(t *testing.T) {
 	}
 
 	v, err := MapLookup(m, []int{2})
-	AssertNoError(t, err)
-	AssertEqualArrays(t, v, []string{"two"})
+	assert.NoError(t, err)
+	assert.EqualArrays(t, v, []string{"two"})
 
 	v, err = MapLookup(m, []int{2, 3})
-	AssertNoError(t, err)
-	AssertEqualArrays(t, v, []string{"two", "three"})
+	assert.NoError(t, err)
+	assert.EqualArrays(t, v, []string{"two", "three"})
 
 	v, err = MapLookup(m, []int{3, 2})
-	AssertNoError(t, err)
-	AssertEqualArrays(t, v, []string{"three", "two"})
+	assert.NoError(t, err)
+	assert.EqualArrays(t, v, []string{"three", "two"})
 
 	v, err = MapLookup(m, []int{2, 3, 4})
-	AssertError(t, err)
-	AssertEqualArrays(t, v, nil)
+	assert.NotEqual(t, err, nil)
+	assert.EqualArrays(t, v, nil)
 }
