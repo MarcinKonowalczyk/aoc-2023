@@ -6,8 +6,10 @@ import (
 )
 
 // const N2 = 26501365
-// const N2 = 49 // to the edge of an empty 9x9
-const N2 = 1
+// const N2 = 1
+const N2 = 16 // to the edge of an empty 3x3 (hgs + gs)
+// const N2 = 27 // to the edge of an empty 5x5 (hgs + 2*gs)
+// const N2 = 60 // to the edge of an empty 11x11 (hgs + 5*gs)
 
 func main_2(lines []string, verbose bool) (n int, err error) {
 	g, err := parseLines(lines)
@@ -23,11 +25,42 @@ func main_2(lines []string, verbose bool) (n int, err error) {
 		return 0, fmt.Errorf("garden size is not odd")
 	}
 
-	g.Clear()
-
 	gs := g.rows
 	hgs := (gs - 1) / 2
 	fmt.Println("Half garden size:", hgs)
+
+	g_test := g.Copy()
+	for i := 0; i < hgs; i++ {
+		g_test.Step()
+	}
+
+	// We've done hgs steps. We should have the wavefront come up to the edge at each face.
+	// If the garden is too full, this won't be true and we'll need to do something else.
+
+	found_top := false
+	found_bottom := false
+	found_left := false
+	found_right := false
+	for _, p := range g_test.positions {
+		if p.Y == 0 && p.X == hgs {
+			found_top = true
+		} else if p.Y == g_test.rows-1 && p.X == hgs {
+			found_bottom = true
+		} else if p.X == 0 && p.Y == hgs {
+			found_left = true
+		}
+		if p.X == g_test.cols-1 && p.Y == hgs {
+			found_right = true
+		}
+	}
+	if !found_top || !found_bottom || !found_left || !found_right {
+		fmt.Println(g_test)
+		return 0, fmt.Errorf("garden is too full")
+	}
+
+	// Okay, we're good. We have a relatively sparse garden.
+
+	// g.Clear()
 
 	g.Tile(3)
 	// Dumb method. Just tile a lot and then step that many times

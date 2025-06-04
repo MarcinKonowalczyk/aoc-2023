@@ -107,3 +107,16 @@ func parseLines(lines []string) (Garden, error) {
 	return Garden{grid: grid, rows: len(lines), cols: cols, positions: []utils.Point2{start_pos}}, nil
 
 }
+
+func (g *Garden) Copy() Garden {
+	new_grid := make([][]bool, g.rows)
+	for i := 0; i < g.rows; i++ {
+		new_grid[i] = make([]bool, g.cols)
+		copy(new_grid[i], g.grid[i])
+	}
+
+	new_positions := make([]utils.Point2, len(g.positions))
+	copy(new_positions, g.positions)
+
+	return Garden{grid: new_grid, rows: g.rows, cols: g.cols, positions: new_positions}
+}
